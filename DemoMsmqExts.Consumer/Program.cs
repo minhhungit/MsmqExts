@@ -1,7 +1,7 @@
 ﻿using DemoMsmqExts.Messages;
 using MsmqExts;
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Threading;
 
 namespace DemoMsmqExts.Consumer
@@ -31,37 +31,46 @@ namespace DemoMsmqExts.Consumer
             // show current number of messages on queue
             CountAndShowMessagesOnQueue(new string[] { queueName });
 
-
             Console.WriteLine("--------------------\n");
 
             var _jobQueue = new MsmqJobQueue(MsmqTransactionType.Internal);
 
             while (true)
             {
-                var msg = new List<IFetchedJob>();
+                // ConcurrentBag: Thread-safe implementation of an unordered collection of elements.
+                // so you have to keep an eye on ordering of messages
+                var msgStore = new ConcurrentBag<IFetchedJob>();
 
                 try
                 {
                     if (batchSize > 0)
                     {
-                        if (mode == DemoFetchMode.OneMessage)
+                        switch (mode)
                         {
-                            var deObj = _jobQueue.Dequeue(queueName, token);
+                            case DemoFetchMode.OneMessage:
+                                var deObj = _jobQueue.Dequeue(queueName, token);
 
-                            if (deObj != null)
-                            {
-                                msg.Add(deObj);
-                            }
+                                if (deObj != null)
+                                {
+                                    msgStore.Add(deObj);
+                                }
+
+                                break;
+                            case DemoFetchMode.BatchMessage:
+                                var msgPkg = _jobQueue.DequeueList(queueName, batchSize, token);
+                                for (int i = 0; i < msgPkg.Count; i++)
+                                {
+                                    msgStore.Add(msgPkg[i]);
+                                }
+
+                                break;
+                            default:
+                                break;
                         }
 
-                        if (mode == DemoFetchMode.BatchMessage)
+                        if (msgStore.Count > 0)
                         {
-                            msg = _jobQueue.DequeueList(queueName, batchSize, token);
-                        }
-
-                        if (msg.Count > 0)
-                        {
-                            foreach (var item in msg)
+                            foreach (var item in msgStore)
                             {
                                 if (item.Result is Product prod)
                                 {
@@ -69,7 +78,7 @@ namespace DemoMsmqExts.Consumer
                                 }
                             }
 
-                            foreach (var item in msg)
+                            foreach (var item in msgStore)
                             {
                                 item.RemoveFromQueue();
                                 item.Dispose();
@@ -91,7 +100,7 @@ namespace DemoMsmqExts.Consumer
                     // ErrorStore.LogException(ex);
                     Console.WriteLine(ex.Message);
 
-                    foreach (var item in msg)
+                    foreach (var item in msgStore)
                     {
                         if (ignoreIfError)
                         {
@@ -109,7 +118,7 @@ namespace DemoMsmqExts.Consumer
                 }
                 finally
                 {
-                    msg = new List<IFetchedJob>();
+                    msgStore = new ConcurrentBag<IFetchedJob>();
                 }
 
                 Console.WriteLine("- - - - - - - ");
