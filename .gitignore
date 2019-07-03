@@ -1,0 +1,15 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/MsmqExts/v16
+/DemoMsmqExts.Consumer/bin/Debug
+/DemoMsmqExts.Consumer/obj/Debug
+/DemoMsmqExts.Messages/bin/Debug
+/DemoMsmqExts.Messages/obj/Debug
+/DemoMsmqExts.Publisher/bin/Debug
+/DemoMsmqExts.Publisher/obj/Debug
+/MsmqExts/.vs/MsmqExts/v16
+/MsmqExts/bin/Debug
+/MsmqExts/obj/Debug
+/packages/Newtonsoft.Json.12.0.2
