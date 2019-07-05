@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   
   <PropertyGroup>
-    <TargetFramework>net45</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
     <Description>MSMQ (Microsoft Message Queuing) helper library</Description>
     <Authors>Hung Vo</Authors>
     <Copyright>Copyright 2019 HungVo &lt;it.minhhung@gmail.com&gt;</Copyright>
@@ -10,16 +10,16 @@
     <RepositoryUrl>https://github.com/minhhungit/MsmqExts</RepositoryUrl>
     <PackageTags>msmq message-queue</PackageTags>
     <PackageLicenseUrl>https://github.com/minhhungit/MsmqExts/blob/master/LICENSE</PackageLicenseUrl>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Experimental.System.Messaging" Version="1.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net462'">
     <Reference Include="System.Messaging" />
-    <Reference Include="System.Transactions" />
   </ItemGroup>
   
 </Project>

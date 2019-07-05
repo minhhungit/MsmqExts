@@ -2,7 +2,13 @@
 
 using System;
 using System.ComponentModel;
+
+#if NET462
 using System.Messaging;
+#else
+using Experimental.System.Messaging;
+#endif
+
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
@@ -10,7 +16,7 @@ namespace MsmqExts
 {
     public static class MessageQueueExtensions
     {
-        #region P/Invoke stuff
+#region P/Invoke stuff
 
         [DllImport("mqrt.dll")]
         private static extern int MQMgmtGetInfo(
@@ -44,7 +50,7 @@ namespace MsmqExts
             public IntPtr status;
         }
 
-        #endregion
+#endregion
 
         private const int MQ_ERROR = unchecked((int)0xC00E0001); // A non-specific Message Queuing error was generated. For example, information about a queue that is currently not the active queue was requested.
         private const int MQ_ERROR_ACCESS_DENIED = unchecked((int)0xC00E0025); // The access rights for retrieving information about the applicable msmq (MSMQ-Configuration) or queue object are not allowed for the calling process.

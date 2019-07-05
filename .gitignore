@@ -23,3 +23,5 @@
 /MsmqExts/obj
 /MsmqExts/bin/Release/net45
 /MsmqExts/bin
+/DemoMsmqExts.PublisherNetCore/bin/Release/netcoreapp2.2
+/DemoMsmqExts.PublisherNetCore/obj

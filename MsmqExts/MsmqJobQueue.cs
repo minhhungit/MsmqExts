@@ -3,7 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+#if NET462
 using System.Messaging;
+#else
+using Experimental.System.Messaging;
+#endif
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
