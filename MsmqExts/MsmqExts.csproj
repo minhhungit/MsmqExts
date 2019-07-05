@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net45</TargetFramework>
     <Description>MSMQ (Microsoft Message Queuing) helper library</Description>
     <Authors>Hung Vo</Authors>
     <Copyright>Copyright 2019 HungVo &lt;it.minhhung@gmail.com&gt;</Copyright>
@@ -10,6 +10,7 @@
     <RepositoryUrl>https://github.com/minhhungit/MsmqExts</RepositoryUrl>
     <PackageTags>msmq message-queue</PackageTags>
     <PackageLicenseUrl>https://github.com/minhhungit/MsmqExts/blob/master/LICENSE</PackageLicenseUrl>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,9 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="System.Messaging">
-      <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\System.Messaging.dll</HintPath>
-    </Reference>
+    <Reference Include="System.Messaging" />
+    <Reference Include="System.Transactions" />
   </ItemGroup>
-
+  
 </Project>

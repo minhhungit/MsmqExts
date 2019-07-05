@@ -21,3 +21,5 @@
 /DemoMsmqExts.Publisher/obj/Release
 /MsmqExts/bin/Release/netstandard2.0
 /MsmqExts/obj
+/MsmqExts/bin/Release/net45
+/MsmqExts/bin
