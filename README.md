@@ -1,4 +1,4 @@
-# MsmqExts
+# MsmqExts <a href="https://www.nuget.org/packages/MsmqExts/"><img src="https://img.shields.io/nuget/v/MsmqExts.svg?style=flat" /> </a>
 MSMQ (Microsoft Message Queuing) helper library
 
 ### Install
