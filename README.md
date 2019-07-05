@@ -7,7 +7,8 @@ Install-Package MsmqExts
 ```
 
 ### Feature:
-- Support fetch batch messages
+- Transaction
+- Fetch batch messages
 
 ### How to run sample: 
 
