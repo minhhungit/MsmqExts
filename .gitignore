@@ -13,3 +13,11 @@
 /MsmqExts/bin/Debug
 /MsmqExts/obj/Debug
 /packages/Newtonsoft.Json.12.0.2
+/DemoMsmqExts.Consumer/bin/Release
+/DemoMsmqExts.Consumer/obj/Release
+/DemoMsmqExts.Messages/bin/Release
+/DemoMsmqExts.Publisher/bin/Release
+/DemoMsmqExts.Messages/obj/Release
+/DemoMsmqExts.Publisher/obj/Release
+/MsmqExts/bin/Release/netstandard2.0
+/MsmqExts/obj

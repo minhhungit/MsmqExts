@@ -1,6 +1,5 @@
 ﻿// Inspired by https://www.hangfire.io/
 
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -81,7 +80,7 @@ namespace MsmqExts
         public void Enqueue<T>(string queueName, T obj)
         {
             using (var messageQueue = new MessageQueue(queueName))
-            using (MemoryStream messageMemory = new MemoryStream(Encoding.Default.GetBytes(JsonConvert.SerializeObject(obj))))
+            using (MemoryStream messageMemory = new MemoryStream(Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(obj))))
             {
                 using (var message = new Message
                 {

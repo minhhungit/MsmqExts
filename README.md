@@ -1,6 +1,11 @@
 # MsmqExts
 MSMQ (Microsoft Message Queuing) helper library
 
+### Install
+```powershell
+Install-Package MsmqExts
+```
+
 ### Feature:
 - Support fetch batch messages
 
