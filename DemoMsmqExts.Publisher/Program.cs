@@ -10,8 +10,6 @@ namespace DemoMsmqExts.Publisher
     {
         static void Main(string[] args)
         {
-            CancellationTokenSource tokenSource = new CancellationTokenSource();
-            CancellationToken token = tokenSource.Token;
             var queueName = AppConstants.MyQueueName;
             var delayNoWorker = new TimeSpan(0, 0, 5);
 
