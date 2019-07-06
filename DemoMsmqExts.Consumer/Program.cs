@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DemoMsmqExts.Consumer
 {
@@ -36,113 +37,117 @@ namespace DemoMsmqExts.Consumer
 
             var _jobQueue = new MsmqJobQueue(MsmqTransactionType.Internal);
 
-            while (true)
-            {
-                // ConcurrentBag: Thread-safe implementation of an unordered collection of elements.
-                // so you have to keep an eye on ordering of messages
-                var msgStore = new ConcurrentBag<IFetchedJob>();
-
-                try
+            Task.Factory.StartNew(() => {
+                while (true)
                 {
-                    if (batchSize > 0)
+                    // ConcurrentBag: Thread-safe implementation of an unordered collection of elements.
+                    // so you have to keep an eye on ordering of messages
+                    var msgStore = new ConcurrentBag<IFetchedJob>();
+
+                    try
                     {
-                        switch (mode)
+                        if (batchSize > 0)
                         {
-                            case DemoFetchMode.OneMessage:
-                                var deObj = _jobQueue.Dequeue(queueName, token);
-
-                                if (deObj != null)
-                                {
-                                    msgStore.Add(deObj);
-                                }                                
-
-                                break;
-                            case DemoFetchMode.BatchMessage:
-                                var msgPkg = _jobQueue.DequeueList(queueName, batchSize, token);
-                                for (int i = 0; i < msgPkg.Count; i++)
-                                {
-                                    if (msgPkg[i] != null)
-                                    {
-                                        msgStore.Add(msgPkg[i]);
-                                    }                                    
-                                }
-
-                                break;
-                            default:
-                                break;
-                        }
-
-                        // make sure that we will filter out NULL messages
-                        // NULL message means there is problem when dequeue message from queue (timeout maybe), 
-                        // therefore, we will retry it in next turn
-                        var transMsgStore = msgStore.Where(x => x != null).ToList();
-
-                        if (transMsgStore.Count > 0)
-                        {
-                            foreach (var item in transMsgStore)
+                            switch (mode)
                             {
-                                if (item == null)
-                                {
-                                    continue;
-                                }
+                                case DemoFetchMode.OneMessage:
+                                    var deObj = _jobQueue.Dequeue(queueName, token);
 
-                                if (item.Result == null)
-                                {
-                                    Console.WriteLine("[bad message]");
-                                    continue;
-                                }
+                                    if (deObj != null)
+                                    {
+                                        msgStore.Add(deObj);
+                                    }
 
-                                if (item.Result is Product prod)
-                                {
-                                    Console.WriteLine($"- processing product <{prod.Id}>");
-                                }
+                                    break;
+                                case DemoFetchMode.BatchMessage:
+                                    var msgPkg = _jobQueue.DequeueList(queueName, batchSize, token);
+                                    for (int i = 0; i < msgPkg.Count; i++)
+                                    {
+                                        if (msgPkg[i] != null)
+                                        {
+                                            msgStore.Add(msgPkg[i]);
+                                        }
+                                    }
+
+                                    break;
+                                default:
+                                    break;
                             }
 
-                            foreach (var item in transMsgStore)
+                            // make sure that we will filter out NULL messages
+                            // NULL message means there is problem when dequeue message from queue (timeout maybe), 
+                            // therefore, we will retry it in next turn
+                            var transMsgStore = msgStore.Where(x => x != null).ToList();
+
+                            if (transMsgStore.Count > 0)
+                            {
+                                foreach (var item in transMsgStore)
+                                {
+                                    if (item == null)
+                                    {
+                                        continue;
+                                    }
+
+                                    if (item.Result == null)
+                                    {
+                                        Console.WriteLine("[bad message]");
+                                        continue;
+                                    }
+
+                                    if (item.Result is Product prod)
+                                    {
+                                        Console.WriteLine($"- processing product <{prod.Id}>");
+                                    }
+                                }
+
+                                foreach (var item in transMsgStore)
+                                {
+                                    item.RemoveFromQueue();
+                                    item.Dispose();
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("No msg, waiting...");
+                            }
+                        }
+                        else
+                        {
+                            Thread.Sleep(delayNoWorker);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // log exception here
+                        // ErrorStore.LogException(ex);
+                        Console.WriteLine(ex.Message);
+
+                        foreach (var item in msgStore)
+                        {
+                            if (ignoreIfError)
                             {
                                 item.RemoveFromQueue();
-                                item.Dispose();
                             }
+                            else
+                            {
+                                item.Requeue();
+                            }
+
+                            item.Dispose();
                         }
-                        else
-                        {
-                            Console.WriteLine("No msg, waiting...");
-                        }
+
+                        Thread.Sleep(exceptionDelay);
                     }
-                    else
+                    finally
                     {
-                        Thread.Sleep(delayNoWorker);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // log exception here
-                    // ErrorStore.LogException(ex);
-                    Console.WriteLine(ex.Message);
-
-                    foreach (var item in msgStore)
-                    {
-                        if (ignoreIfError)
-                        {
-                            item.RemoveFromQueue();
-                        }
-                        else
-                        {
-                            item.Requeue();
-                        }
-
-                        item.Dispose();
+                        msgStore = new ConcurrentBag<IFetchedJob>();
                     }
 
-                    Thread.Sleep(exceptionDelay);
+                    Console.WriteLine("- - - - - - - ");
                 }
-                finally
-                {
-                    msgStore = new ConcurrentBag<IFetchedJob>();
-                }
+            }, TaskCreationOptions.LongRunning).ConfigureAwait(false);
 
-                Console.WriteLine("- - - - - - - ");
-            }
+            Console.ReadKey();
         }
 
         static void CountAndShowMessagesOnQueue(string[] queueNames)
