@@ -17,4 +17,11 @@ Install-Package MsmqExts
 - Run Publisher - Consumer
 - Enjoy
 
+### Sample screenshot
+
+<img src="https://raw.githubusercontent.com/minhhungit/MsmqExts/master/wiki/producer.png" />
+
+<img src="https://raw.githubusercontent.com/minhhungit/MsmqExts/master/wiki/consumer.png" />
+
+
 Inspired by https://www.hangfire.io
