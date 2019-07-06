@@ -40,20 +40,35 @@ namespace MsmqExts
                 {
                     var message = transaction.Receive(messageQueue, ReceiveTimeout);
 
-                    using (var reader = new StreamReader(message.BodyStream))
+                    if (message != null && !string.IsNullOrWhiteSpace(message.Label))
                     {
-                        return new MsmqFetchedJob(transaction, reader.ReadToEnd(), Type.GetType(message.Label));
+                        using (var reader = new StreamReader(message.BodyStream))
+                        {
+                            var msgType = Type.GetType(message.Label);
+
+                            if (msgType != null)
+                            {
+                                return new MsmqFetchedJob(transaction, reader.ReadToEnd(), msgType);
+                            }
+                            else
+                            {
+                                // return and developer will decide how to process invaild message
+                                return new MsmqFetchedJob(transaction);
+                            }
+                        }
                     }
                 }
             }
             catch (MessageQueueException ex) when (ex.MessageQueueErrorCode == MessageQueueErrorCode.IOTimeout)
             {
-                return null;
+                
             }
             finally
             {
                 
             }
+
+            return null;
         }
 
         public List<IFetchedJob> DequeueList(string queueName, int batchSize, CancellationToken cancellationToken)
@@ -67,12 +82,7 @@ namespace MsmqExts
                 // Note that we start the Task here
                 listOfTasks.Add(Task.Run(() =>
                 {
-                    var deObj = Dequeue(queueName, cancellationToken);
-
-                    if (deObj != null)
-                    {
-                        result.Add(deObj);
-                    }
+                    result.Add(Dequeue(queueName, cancellationToken));
                 }));
             }
 

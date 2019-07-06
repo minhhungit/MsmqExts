@@ -16,6 +16,11 @@ namespace MsmqExts
     {
         private readonly IMsmqTransaction _transaction;
 
+        public MsmqFetchedJob(IMsmqTransaction transaction)
+        {
+            _transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
+        }
+
         public MsmqFetchedJob(IMsmqTransaction transaction, string jsonBodyText, Type jsonTargetType)
         {
             _transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
@@ -29,7 +34,17 @@ namespace MsmqExts
 
         public object Result
         {
-            get { return JsonConvert.DeserializeObject(JsonBodyText, JsonTargetType); }
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(JsonBodyText) && JsonTargetType != null)
+                {
+                    return JsonConvert.DeserializeObject(JsonBodyText, JsonTargetType);
+                }
+                else
+                {
+                    return null;
+                }
+            }
         }
 
         public void RemoveFromQueue()

@@ -2,6 +2,7 @@
 using MsmqExts;
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading;
 
 namespace DemoMsmqExts.Consumer
@@ -53,14 +54,17 @@ namespace DemoMsmqExts.Consumer
                                 if (deObj != null)
                                 {
                                     msgStore.Add(deObj);
-                                }
+                                }                                
 
                                 break;
                             case DemoFetchMode.BatchMessage:
                                 var msgPkg = _jobQueue.DequeueList(queueName, batchSize, token);
                                 for (int i = 0; i < msgPkg.Count; i++)
                                 {
-                                    msgStore.Add(msgPkg[i]);
+                                    if (msgPkg[i] != null)
+                                    {
+                                        msgStore.Add(msgPkg[i]);
+                                    }                                    
                                 }
 
                                 break;
@@ -68,17 +72,33 @@ namespace DemoMsmqExts.Consumer
                                 break;
                         }
 
-                        if (msgStore.Count > 0)
+                        // make sure that we will filter out NULL messages
+                        // NULL message means there is problem when dequeue message from queue (timeout maybe), 
+                        // therefore, we will retry it in next turn
+                        var transMsgStore = msgStore.Where(x => x != null).ToList();
+
+                        if (transMsgStore.Count > 0)
                         {
-                            foreach (var item in msgStore)
+                            foreach (var item in transMsgStore)
                             {
+                                if (item == null)
+                                {
+                                    continue;
+                                }
+
+                                if (item.Result == null)
+                                {
+                                    Console.WriteLine("[bad message]");
+                                    continue;
+                                }
+
                                 if (item.Result is Product prod)
                                 {
                                     Console.WriteLine($"- processing product <{prod.Id}>");
                                 }
                             }
 
-                            foreach (var item in msgStore)
+                            foreach (var item in transMsgStore)
                             {
                                 item.RemoveFromQueue();
                                 item.Dispose();
