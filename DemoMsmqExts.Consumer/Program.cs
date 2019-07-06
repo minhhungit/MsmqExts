@@ -41,7 +41,7 @@ namespace DemoMsmqExts.Consumer
                 while (true)
                 {
                     // ConcurrentBag: Thread-safe implementation of an unordered collection of elements.
-                    // so you have to keep an eye on ordering of messages
+                    // so you have to keep an eye on ordering of messages, or use List<IFetchedJob>
                     var msgStore = new ConcurrentBag<IFetchedJob>();
 
                     try
