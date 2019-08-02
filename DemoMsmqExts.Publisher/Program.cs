@@ -1,7 +1,6 @@
 ﻿using DemoMsmqExts.Messages;
 using MsmqExts;
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace DemoMsmqExts.Publisher
@@ -11,7 +10,6 @@ namespace DemoMsmqExts.Publisher
         static void Main(string[] args)
         {
             var queueName = AppConstants.MyQueueName;
-            var delayNoWorker = new TimeSpan(0, 0, 5);
 
             var _jobQueue = new MsmqJobQueue(MsmqTransactionType.Internal);
 

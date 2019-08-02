@@ -37,7 +37,8 @@ namespace DemoMsmqExts.Consumer
 
             var _jobQueue = new MsmqJobQueue(MsmqTransactionType.Internal);
 
-            Task.Factory.StartNew(() => {
+            Task.Factory.StartNew(() =>
+            {
                 while (true)
                 {
                     // ConcurrentBag: Thread-safe implementation of an unordered collection of elements.
