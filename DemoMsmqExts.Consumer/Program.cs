@@ -24,7 +24,7 @@ namespace DemoMsmqExts.Consumer
             var queueName = AppConstants.MyQueueName;
 
             DemoFetchMode mode = DemoFetchMode.BatchMessage;
-            var batchSize = 5;
+            var batchSize = 50;
 
             var delayNoWorker = new TimeSpan(0, 0, 5);
             var exceptionDelay = new TimeSpan(0, 0, 10);
@@ -62,6 +62,7 @@ namespace DemoMsmqExts.Consumer
                                     break;
                                 case DemoFetchMode.BatchMessage:
                                     var msgPkg = _jobQueue.DequeueList(queueName, batchSize, token);
+
                                     for (int i = 0; i < msgPkg.Count; i++)
                                     {
                                         if (msgPkg[i] != null)
@@ -103,8 +104,8 @@ namespace DemoMsmqExts.Consumer
 
                                 foreach (var item in transMsgStore)
                                 {
-                                    item.RemoveFromQueue();
-                                    item.Dispose();
+                                    item?.RemoveFromQueue();
+                                    item?.Dispose();
                                 }
                             }
                             else
@@ -127,14 +128,14 @@ namespace DemoMsmqExts.Consumer
                         {
                             if (ignoreIfError)
                             {
-                                item.RemoveFromQueue();
+                                item?.RemoveFromQueue();
                             }
                             else
                             {
-                                item.Requeue();
+                                item?.Requeue();
                             }
 
-                            item.Dispose();
+                            item?.Dispose();
                         }
 
                         Thread.Sleep(exceptionDelay);

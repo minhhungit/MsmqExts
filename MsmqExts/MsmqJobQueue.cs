@@ -18,9 +18,37 @@ namespace MsmqExts
     {
         private readonly MsmqTransactionType _transactionType;
         private readonly TimeSpan ReceiveTimeout = TimeSpan.FromSeconds(5);
+        private int TaskBatchSize = 5;
+
+        public MsmqJobQueue()
+        {
+            _transactionType = MsmqTransactionType.Internal;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="taskBatchSize">this will be used to dequeue batch messages</param>
+        public MsmqJobQueue(int taskBatchSize)
+        {
+            _transactionType = MsmqTransactionType.Internal;
+            TaskBatchSize = taskBatchSize;
+        }
+
         public MsmqJobQueue(MsmqTransactionType transactionType)
         {
             _transactionType = transactionType;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="transactionType">MsmqTransactionType</param>
+        /// <param name="taskBatchSize">this will be used to dequeue batch messages</param>
+        public MsmqJobQueue(MsmqTransactionType transactionType, int taskBatchSize)
+        {
+            _transactionType = transactionType;
+            TaskBatchSize = taskBatchSize;
         }
 
         public bool IsMatchType<T>(object obj) where T : class
@@ -28,6 +56,12 @@ namespace MsmqExts
             return typeof(T) == obj.GetType();
         }
 
+        /// <summary>
+        /// Dequeue message
+        /// </summary>
+        /// <param name="queueName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public IFetchedJob Dequeue(string queueName, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -71,26 +105,43 @@ namespace MsmqExts
             return null;
         }
 
-        public List<IFetchedJob> DequeueList(string queueName, int batchSize, CancellationToken cancellationToken)
+        /// <summary>
+        /// Dequeue a list message (for some cases we need to get a list messages to do a bulk insert)
+        /// </summary>
+        /// <param name="queueName">Queue name</param>
+        /// <param name="nbrMessages">Number of messages you want to pick</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public List<IFetchedJob> DequeueList(string queueName, int nbrMessages, CancellationToken cancellationToken)
         {
             var result = new List<IFetchedJob>();
-
-            var listOfTasks = new List<Task>();
-
-            for (var i = 0; i < batchSize; i++)
+            var counter = nbrMessages;
+            while (counter > 0)
             {
-                // Note that we start the Task here
-                listOfTasks.Add(Task.Run(() =>
-                {
-                    result.Add(Dequeue(queueName, cancellationToken));
-                }));
-            }
+                var listOfTasks = new List<Task>();
 
-            Task.WaitAll(listOfTasks.ToArray());
+                for (var i = 0; i < TaskBatchSize; i++)
+                {
+                    // Note that we start the Task here
+                    listOfTasks.Add(Task.Run(() =>
+                    {
+                        result.Add(Dequeue(queueName, cancellationToken));
+                    }));
+                }
+
+                Task.WaitAll(listOfTasks.ToArray());
+                counter = counter - TaskBatchSize;
+            }
 
             return result;
         }
 
+        /// <summary>
+        /// Enqueue message
+        /// </summary>
+        /// <typeparam name="T">Type of message</typeparam>
+        /// <param name="queueName">Queue name</param>
+        /// <param name="obj">Message</param>
         public void Enqueue<T>(string queueName, T obj)
         {
             using (var messageQueue = new MessageQueue(queueName))
