@@ -1,6 +1,4 @@
-﻿//// Inspired by https://www.hangfire.io/
-
-//using System;
+﻿//using System;
 //using System.Messaging;
 //using System.Transactions;
 

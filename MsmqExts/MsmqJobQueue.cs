@@ -1,6 +1,4 @@
-﻿// Inspired by https://www.hangfire.io/
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 #if NET462

@@ -1,6 +1,4 @@
-﻿// Inspired by https://www.hangfire.io/
-
-using System;
+﻿using System;
 #if NET462
 using System.Messaging;
 #else
@@ -23,6 +21,12 @@ namespace MsmqExts
             _transaction.Dispose();
         }
 
+        /// <summary>
+        /// Receive message
+        /// </summary>
+        /// <param name="queue">MSMQ queue</param>
+        /// <param name="timeout">Receive timeout</param>
+        /// <returns></returns>
         public Message Receive(MessageQueue queue, TimeSpan timeout)
         {
             if (queue.Transactional)
@@ -36,11 +40,17 @@ namespace MsmqExts
             }     
         }
 
+        /// <summary>
+        /// Commit a message, message will be remove out of queue
+        /// </summary>
         public void Commit()
         {
             _transaction.Commit();
         }
 
+        /// <summary>
+        /// Abort current message
+        /// </summary>
         public void Abort()
         {
             _transaction.Abort();

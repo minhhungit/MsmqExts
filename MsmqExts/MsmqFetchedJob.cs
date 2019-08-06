@@ -1,6 +1,4 @@
-﻿// Inspired by https://www.hangfire.io/
-
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 
 namespace MsmqExts
@@ -32,6 +30,9 @@ namespace MsmqExts
         public string JsonBodyText { get; }
         public Type JsonTargetType { get; }
 
+        /// <summary>
+        /// Message object
+        /// </summary>
         public object Result
         {
             get

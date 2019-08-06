@@ -1,6 +1,4 @@
-﻿// Inspired by https://www.hangfire.io/
-
-using System;
+﻿using System;
 #if NET462
 using System.Messaging;
 #else
