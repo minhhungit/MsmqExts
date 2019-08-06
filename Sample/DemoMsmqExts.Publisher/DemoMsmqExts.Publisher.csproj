@@ -50,13 +50,13 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\MsmqExts\MsmqExts.csproj">
+      <Project>{E611A844-B575-4606-85AB-1DE47FDD6591}</Project>
+      <Name>MsmqExts</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DemoMsmqExts.Messages\DemoMsmqExts.Messages.csproj">
       <Project>{b22988ae-9ceb-4b1f-9f90-08259ebd6f93}</Project>
       <Name>DemoMsmqExts.Messages</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\MsmqExts\MsmqExts.csproj">
-      <Project>{e611a844-b575-4606-85ab-1de47fdd6591}</Project>
-      <Name>MsmqExts</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
