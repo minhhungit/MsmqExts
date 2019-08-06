@@ -108,7 +108,7 @@ namespace DemoMsmqExts.Consumer
 
                                 foreach (var item in transMsgStore)
                                 {
-                                    item?.RemoveFromQueue();
+                                    item?.Commit();
                                     item?.Dispose();
                                 }
                             }
@@ -132,11 +132,11 @@ namespace DemoMsmqExts.Consumer
                         {
                             if (ignoreIfError)
                             {
-                                item?.RemoveFromQueue();
+                                item?.Commit();
                             }
                             else
                             {
-                                item?.Requeue();
+                                item?.Abort();
                             }
 
                             item?.Dispose();

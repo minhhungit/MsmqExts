@@ -5,8 +5,8 @@ namespace MsmqExts
 {
     public interface IFetchedJob : IDisposable
     {
-        void RemoveFromQueue();
-        void Requeue();
+        void Commit();
+        void Abort();
         object Result { get; }
     }
 
@@ -48,12 +48,12 @@ namespace MsmqExts
             }
         }
 
-        public void RemoveFromQueue()
+        public void Commit()
         {
             _transaction.Commit();
         }
 
-        public void Requeue()
+        public void Abort()
         {
             _transaction.Abort();
         }

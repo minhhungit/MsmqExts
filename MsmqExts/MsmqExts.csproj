@@ -10,8 +10,8 @@
     <RepositoryUrl>https://github.com/minhhungit/MsmqExts</RepositoryUrl>
     <PackageTags>msmq message-queue</PackageTags>
     <PackageLicenseUrl>https://github.com/minhhungit/MsmqExts/blob/master/LICENSE</PackageLicenseUrl>
-    <Version>1.0.6</Version>
-    <PackageReleaseNotes>rename and fix deQueue task number logic</PackageReleaseNotes>
+    <Version>1.0.7</Version>
+    <PackageReleaseNotes>rename methods</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
