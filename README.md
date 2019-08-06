@@ -57,6 +57,8 @@ using(var deObj = _jobQueue.Dequeue("my-queue", token))
 
 ### Sample screenshot
 
+<img src="https://raw.githubusercontent.com/minhhungit/MsmqExts/master/wiki/simple-sample-msmqexts.gif" />
+
 <img src="https://raw.githubusercontent.com/minhhungit/MsmqExts/master/wiki/producer.png" />
 
 <img src="https://raw.githubusercontent.com/minhhungit/MsmqExts/master/wiki/consumer.png" />
