@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DemoMsmqExts.Consumer", "Sa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DemoMsmqExts.Publisher", "Sample\DemoMsmqExts.Publisher\DemoMsmqExts.Publisher.csproj", "{86C9A3FB-0789-495B-94EE-257373C15D8F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OneMoreSample", "OneMoreSample", "{B12D14DA-F5FF-401C-B97B-27B76761B19D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleMsmqExtsSample", "Sample\SimpleMsmqExtsSample\SimpleMsmqExtsSample.csproj", "{CD31D38D-2850-4516-8BF3-AA0B59BD44CC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +45,10 @@ Global
 		{86C9A3FB-0789-495B-94EE-257373C15D8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86C9A3FB-0789-495B-94EE-257373C15D8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{86C9A3FB-0789-495B-94EE-257373C15D8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD31D38D-2850-4516-8BF3-AA0B59BD44CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD31D38D-2850-4516-8BF3-AA0B59BD44CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD31D38D-2850-4516-8BF3-AA0B59BD44CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD31D38D-2850-4516-8BF3-AA0B59BD44CC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -50,6 +58,7 @@ Global
 		{27A25A05-DA79-4643-9309-7C3335A04B6D} = {F0C92577-339A-43D9-A168-A020D2C64F3C}
 		{A4FA8A5F-F75B-4507-BC74-1230A2E4387C} = {F0C92577-339A-43D9-A168-A020D2C64F3C}
 		{86C9A3FB-0789-495B-94EE-257373C15D8F} = {F0C92577-339A-43D9-A168-A020D2C64F3C}
+		{CD31D38D-2850-4516-8BF3-AA0B59BD44CC} = {B12D14DA-F5FF-401C-B97B-27B76761B19D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C54B07CB-E62D-4D66-B115-3C1F60B9B4F4}
