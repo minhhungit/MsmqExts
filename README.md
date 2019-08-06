@@ -24,6 +24,7 @@ CancellationTokenSource tokenSource = new CancellationTokenSource();
 CancellationToken token = tokenSource.Token;
 
 var _jobQueue = new MsmqJobQueue();
+
 using(var deObj = _jobQueue.Dequeue("my-queue", token))
 {
     try
