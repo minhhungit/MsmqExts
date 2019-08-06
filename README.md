@@ -39,8 +39,9 @@ catch (Exception ex)
     Console.WriteLine($"Error: {ex.Message}");
     
     deObj.Abort();
-    deObj.Dispose();
 }
+
+deObj.Dispose();
 ```
 
 ### Feature:
