@@ -1,4 +1,5 @@
 ﻿using MsmqExts;
+using Newtonsoft.Json;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ namespace SimpleMsmqExtsSample
 
     class Program
     {
-        static MsmqJobQueue _jobQueue = new MsmqJobQueue();
+        static MsmqJobQueue _jobQueue = new MsmqJobQueue(new MsmqJobQueueSettings {ReceiveTimeout = TimeSpan.FromSeconds(1), MessageOrder = false });
         const string QUEUE_NAME = ".\\private$\\hungvo-hello";
 
         static void Main(string[] args)
@@ -30,8 +31,8 @@ namespace SimpleMsmqExtsSample
                     };
 
                     _jobQueue.Enqueue(QUEUE_NAME, obj);
-
-                    Thread.Sleep(10);
+                    Console.WriteLine("Enqueued: "+ JsonConvert.SerializeObject(obj));
+                    Thread.Sleep(500);
                 }
             });
 
@@ -44,26 +45,48 @@ namespace SimpleMsmqExtsSample
             {
                 while (true)
                 {
-                    using (var deObj = _jobQueue.Dequeue(QUEUE_NAME, token))
+                    try
                     {
-                        try
+                        var deObjs = _jobQueue.DequeueList(QUEUE_NAME, 100, token);
+                        foreach (var item in deObjs)
                         {
-                            if (deObj.Result is MyMessage prod)
+                            if (item == null)
                             {
-                                var shortId = prod.Id.ToString().Substring(0, 7);
-                                Console.WriteLine($"- processing product <{shortId}> - {prod.CreatedDate.ToString("HH:mm:ss.fff")}");
+                                continue;
                             }
-                            deObj.Commit();
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error: {ex.Message}");
 
-                            deObj.Abort();
+                            if (item.Result == null)
+                            {
+                                continue;
+                            }
+
+
+                            try
+                            {
+                                if (item.Result is MyMessage prod)
+                                {
+                                    var shortId = prod.Id.ToString().Substring(0, 7);
+                                    Console.WriteLine($"- processing product <{shortId}> - {prod.CreatedDate.ToString("HH:mm:ss.fff")}");
+                                }
+                                item.Commit();
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error: {ex.Message}");
+
+                                item.Abort();
+                            }
+
+                            item.Dispose();
                         }
+
+                        Thread.Sleep(10);
+                        Console.WriteLine(DateTime.Now);
+
+                    }catch(Exception ex)
+                    {
+
                     }
-
-                    Thread.Sleep(10);
                 }
             });
 

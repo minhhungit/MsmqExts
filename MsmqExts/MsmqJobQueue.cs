@@ -9,27 +9,44 @@ using Experimental.System.Messaging;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace MsmqExts
 {
     public class MsmqJobQueueSettings
     {
         public MsmqTransactionType TransactionType { get; set; }
-        public int? DequeueNbrOfTasks { get; set; }
         public TimeSpan? ReceiveTimeout { get; set; }
+
+        /// <summary>
+        /// Make sure that message will be picked by ordering
+        /// Default value = true (with order)
+        /// If value = null or false, MsmqExts will pick messages using multi tasks for faster
+        /// </summary>
+        public bool? MessageOrder { get; set; }
+
+        /// <summary>
+        /// Dequeue worker count, this setting is used when MessageOrder = false or null
+        /// Default value = Environment.ProcessorCount * 5
+        /// </summary>
+        public int? DequeueWorkerCount { get; set; }
     }
 
     public class MsmqJobQueue
     {
         private readonly MsmqJobQueueSettings _settings = null;
+        private static TimeSpan _receiveTimeoutDefault = TimeSpan.FromSeconds(2);
+        private static bool _messageOrder = true;
+        private static int _dequeueWorkerCount = Environment.ProcessorCount * 5;
 
         public MsmqJobQueue()
         {
             _settings = new MsmqJobQueueSettings
             {
                 TransactionType = MsmqTransactionType.Internal,
-                ReceiveTimeout = TimeSpan.FromSeconds(5),
-                DequeueNbrOfTasks = 5
+                ReceiveTimeout = _receiveTimeoutDefault,
+                MessageOrder = _messageOrder,
+                DequeueWorkerCount = _dequeueWorkerCount
             };
         }
 
@@ -37,8 +54,9 @@ namespace MsmqExts
         {
             _settings = settings;
 
-            _settings.ReceiveTimeout = _settings.ReceiveTimeout ?? TimeSpan.FromSeconds(5);
-            _settings.DequeueNbrOfTasks = _settings.DequeueNbrOfTasks ?? 5;
+            _settings.ReceiveTimeout = _settings.ReceiveTimeout ?? _receiveTimeoutDefault;
+            _settings.MessageOrder = _settings.MessageOrder ?? _messageOrder;
+            _settings.DequeueWorkerCount = _settings.DequeueWorkerCount ?? _dequeueWorkerCount;
         }
 
         public bool IsMatchType<T>(object obj) where T : class
@@ -85,11 +103,11 @@ namespace MsmqExts
             }
             catch (MessageQueueException ex) when (ex.MessageQueueErrorCode == MessageQueueErrorCode.IOTimeout)
             {
-                
+
             }
             finally
             {
-                
+
             }
 
             return null;
@@ -104,32 +122,57 @@ namespace MsmqExts
         /// <returns></returns>
         public List<IFetchedJob> DequeueList(string queueName, int nbrMessages, CancellationToken cancellationToken)
         {
-            var result = new List<IFetchedJob>();
-            var counter = nbrMessages;
-            while (counter > 0)
+            if (_settings.MessageOrder ?? false)
             {
-                var listOfTasks = new List<Task>();
-
-                for (var i = 0; i < _settings.DequeueNbrOfTasks; i++)
+                var result = new List<IFetchedJob>();
+                for (var i = 0; i < nbrMessages; i++)
                 {
-                    // Note that we start the Task here
-                    listOfTasks.Add(Task.Run(() =>
-                    {
-                        result.Add(Dequeue(queueName, cancellationToken));
-                    }));
-
-                    counter--;
-
-                    if (counter == 0)
-                    {
-                        break;
-                    }
+                    result.Add(Dequeue(queueName, cancellationToken));
                 }
 
-                Task.WaitAll(listOfTasks.ToArray());                
+                return result;
             }
+            else
+            {
+                var msgQueue = new ConcurrentBag<IFetchedJob>();
+                var counter = nbrMessages;
+                while (counter > 0)
+                {
+                    var listOfTasks = new List<Task>();
 
-            return result;
+                    for (var i = 0; i < _settings.DequeueWorkerCount; i++)
+                    {
+                        // Note that we start the Task here
+                        listOfTasks.Add(Task.Run(() =>
+                        {
+                            msgQueue.Add(Dequeue(queueName, cancellationToken));
+                        }));
+
+                        counter--;
+
+                        if (counter == 0)
+                        {
+                            break;
+                        }
+                    }
+
+                    Task.WaitAll(listOfTasks.ToArray());
+                }
+
+                var result = new List<IFetchedJob>();
+
+                while (!msgQueue.IsEmpty)
+                {
+                    if (msgQueue.TryTake(out IFetchedJob msg))
+                    {
+                        result.Add(msg);
+                    }
+
+                    Thread.Sleep(1);
+                }
+
+                return result;
+            }
         }
 
         /// <summary>
@@ -148,7 +191,7 @@ namespace MsmqExts
                     BodyStream = messageMemory,
                     Label = obj.GetType().AssemblyQualifiedName,
                     Recoverable = true,
-                    UseDeadLetterQueue = true
+                    UseDeadLetterQueue = true,
                 })
                 using (var transaction = new MessageQueueTransaction())
                 {
@@ -156,7 +199,7 @@ namespace MsmqExts
                     messageQueue.Send(message, transaction);
                     transaction.Commit();
                 }
-            }            
+            }
         }
 
         private IMsmqTransaction CreateTransaction()
@@ -165,8 +208,8 @@ namespace MsmqExts
             {
                 case MsmqTransactionType.Internal:
                     return new MsmqInternalTransaction();
-                //case MsmqTransactionType.Dtc:
-                //    return new MsmqDtcTransaction();
+                    //case MsmqTransactionType.Dtc:
+                    //    return new MsmqDtcTransaction();
             }
 
             throw new InvalidOperationException("Unknown MSMQ transaction type: " + _settings.TransactionType);

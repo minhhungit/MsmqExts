@@ -37,8 +37,7 @@ namespace DemoMsmqExts.Consumer
 
             var _jobQueue = new MsmqJobQueue(new MsmqJobQueueSettings {
                 TransactionType = MsmqTransactionType.Internal,
-                ReceiveTimeout = TimeSpan.FromSeconds(3),
-                DequeueNbrOfTasks = 10
+                ReceiveTimeout = TimeSpan.FromSeconds(3)
             });
 
             Task.Factory.StartNew(() =>
