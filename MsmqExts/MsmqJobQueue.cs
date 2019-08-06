@@ -14,41 +14,30 @@ using System.Threading.Tasks;
 
 namespace MsmqExts
 {
+    public class MsmqJobQueueSettings
+    {
+        public MsmqTransactionType TransactionType { get; set; }
+        public int TaskBatchSize { get; set; }
+        public TimeSpan ReceiveTimeout { get; set; }
+    }
+
     public class MsmqJobQueue
     {
-        private readonly MsmqTransactionType _transactionType;
-        private readonly TimeSpan ReceiveTimeout = TimeSpan.FromSeconds(5);
-        private int TaskBatchSize = 5;
+        private readonly MsmqJobQueueSettings _settings = null;
 
         public MsmqJobQueue()
         {
-            _transactionType = MsmqTransactionType.Internal;
+            _settings = new MsmqJobQueueSettings
+            {
+                TransactionType = MsmqTransactionType.Internal,
+                ReceiveTimeout = TimeSpan.FromSeconds(5),
+                TaskBatchSize = 5
+            };
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="taskBatchSize">this will be used to dequeue batch messages</param>
-        public MsmqJobQueue(int taskBatchSize)
+        public MsmqJobQueue(MsmqJobQueueSettings settings)
         {
-            _transactionType = MsmqTransactionType.Internal;
-            TaskBatchSize = taskBatchSize;
-        }
-
-        public MsmqJobQueue(MsmqTransactionType transactionType)
-        {
-            _transactionType = transactionType;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="transactionType">MsmqTransactionType</param>
-        /// <param name="taskBatchSize">this will be used to dequeue batch messages</param>
-        public MsmqJobQueue(MsmqTransactionType transactionType, int taskBatchSize)
-        {
-            _transactionType = transactionType;
-            TaskBatchSize = taskBatchSize;
+            _settings = settings;
         }
 
         public bool IsMatchType<T>(object obj) where T : class
@@ -72,7 +61,7 @@ namespace MsmqExts
             {
                 using (var messageQueue = new MessageQueue(queueName))
                 {
-                    var message = transaction.Receive(messageQueue, ReceiveTimeout);
+                    var message = transaction.Receive(messageQueue, _settings.ReceiveTimeout);
 
                     if (message != null && !string.IsNullOrWhiteSpace(message.Label))
                     {
@@ -120,7 +109,7 @@ namespace MsmqExts
             {
                 var listOfTasks = new List<Task>();
 
-                for (var i = 0; i < TaskBatchSize; i++)
+                for (var i = 0; i < _settings.TaskBatchSize; i++)
                 {
                     // Note that we start the Task here
                     listOfTasks.Add(Task.Run(() =>
@@ -130,7 +119,7 @@ namespace MsmqExts
                 }
 
                 Task.WaitAll(listOfTasks.ToArray());
-                counter = counter - TaskBatchSize;
+                counter = counter - _settings.TaskBatchSize;
             }
 
             return result;
@@ -165,7 +154,7 @@ namespace MsmqExts
 
         private IMsmqTransaction CreateTransaction()
         {
-            switch (_transactionType)
+            switch (_settings.TransactionType)
             {
                 case MsmqTransactionType.Internal:
                     return new MsmqInternalTransaction();
@@ -173,7 +162,7 @@ namespace MsmqExts
                 //    return new MsmqDtcTransaction();
             }
 
-            throw new InvalidOperationException("Unknown MSMQ transaction type: " + _transactionType);
+            throw new InvalidOperationException("Unknown MSMQ transaction type: " + _settings.TransactionType);
         }
     }
 }

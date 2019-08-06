@@ -35,7 +35,11 @@ namespace DemoMsmqExts.Consumer
 
             Console.WriteLine("--------------------\n");
 
-            var _jobQueue = new MsmqJobQueue(MsmqTransactionType.Internal);
+            var _jobQueue = new MsmqJobQueue(new MsmqJobQueueSettings {
+                TransactionType = MsmqTransactionType.Internal,
+                ReceiveTimeout = TimeSpan.FromSeconds(3),
+                TaskBatchSize = 10
+            });
 
             Task.Factory.StartNew(() =>
             {

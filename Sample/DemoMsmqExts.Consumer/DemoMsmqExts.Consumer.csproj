@@ -55,7 +55,7 @@
       <Project>{b22988ae-9ceb-4b1f-9f90-08259ebd6f93}</Project>
       <Name>DemoMsmqExts.Messages</Name>
     </ProjectReference>
-    <ProjectReference Include="..\MsmqExts\MsmqExts.csproj">
+    <ProjectReference Include="..\..\MsmqExts\MsmqExts.csproj">
       <Project>{e611a844-b575-4606-85ab-1de47fdd6591}</Project>
       <Name>MsmqExts</Name>
     </ProjectReference>

@@ -11,7 +11,7 @@ namespace DemoMsmqExts.Publisher
         {
             var queueName = AppConstants.MyQueueName;
 
-            var _jobQueue = new MsmqJobQueue(MsmqTransactionType.Internal);
+            var _jobQueue = new MsmqJobQueue();
 
             Task.Run(() =>
             {

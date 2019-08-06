@@ -26,3 +26,5 @@
 /DemoMsmqExts.PublisherNetCore/bin/Release/netcoreapp2.2
 /DemoMsmqExts.PublisherNetCore/obj
 /DemoMsmqExts.PublisherNetCore/bin/Debug/netcoreapp2.2
+bin
+obj
