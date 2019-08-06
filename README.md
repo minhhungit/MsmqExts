@@ -6,6 +6,43 @@ MSMQ (Microsoft Message Queuing) helper library
 Install-Package MsmqExts
 ```
 
+### Simple Publisher
+```csharp
+var _jobQueue = new MsmqJobQueue();
+var obj = new Product
+{
+    Id = 1,
+    Name = @"Jin"
+};
+
+_jobQueue.Enqueue("my-queue", obj);
+```
+
+### Simple Consumer
+```csharp
+CancellationTokenSource tokenSource = new CancellationTokenSource();
+CancellationToken token = tokenSource.Token;
+
+var _jobQueue = new MsmqJobQueue();
+var deObj = _jobQueue.Dequeue("my-queue", token);
+
+try
+{
+    if (deObj.Result is Product prod)
+    {
+        Console.WriteLine($"- processing product <{prod.Id}>");
+    }
+    deObj.RemoveFromQueue();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Error: {ex.Message}");
+    
+    deObj.Requeue();
+    deObj.Dispose();
+}
+```
+
 ### Feature:
 - Transaction
 - Fetch batch messages
