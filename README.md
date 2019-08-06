@@ -24,24 +24,23 @@ CancellationTokenSource tokenSource = new CancellationTokenSource();
 CancellationToken token = tokenSource.Token;
 
 var _jobQueue = new MsmqJobQueue();
-var deObj = _jobQueue.Dequeue("my-queue", token);
-
-try
+using(var deObj = _jobQueue.Dequeue("my-queue", token))
 {
-    if (deObj.Result is Product prod)
+    try
     {
-        Console.WriteLine($"- processing product <{prod.Id}>");
+        if (deObj.Result is Product prod)
+        {
+            Console.WriteLine($"- processing product <{prod.Id}>");
+        }
+        deObj.Commit();
     }
-    deObj.Commit();
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Error: {ex.Message}");
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error: {ex.Message}");
     
-    deObj.Abort();
+        deObj.Abort();
+    }
 }
-
-deObj.Dispose();
 ```
 
 ### Feature:
