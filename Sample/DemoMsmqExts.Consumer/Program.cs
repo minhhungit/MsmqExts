@@ -24,7 +24,7 @@ namespace DemoMsmqExts.Consumer
             var queueName = AppConstants.MyQueueName;
 
             DemoFetchMode mode = DemoFetchMode.BatchMessage;
-            var batchSize = 50;
+            var numberOfMessageIWantToPick = 15;
 
             var delayNoWorker = new TimeSpan(0, 0, 5);
             var exceptionDelay = new TimeSpan(0, 0, 10);
@@ -38,7 +38,7 @@ namespace DemoMsmqExts.Consumer
             var _jobQueue = new MsmqJobQueue(new MsmqJobQueueSettings {
                 TransactionType = MsmqTransactionType.Internal,
                 ReceiveTimeout = TimeSpan.FromSeconds(3),
-                TaskBatchSize = 10
+                DequeueNbrOfTasks = 10
             });
 
             Task.Factory.StartNew(() =>
@@ -51,7 +51,7 @@ namespace DemoMsmqExts.Consumer
 
                     try
                     {
-                        if (batchSize > 0)
+                        if (numberOfMessageIWantToPick > 0)
                         {
                             switch (mode)
                             {
@@ -65,7 +65,7 @@ namespace DemoMsmqExts.Consumer
 
                                     break;
                                 case DemoFetchMode.BatchMessage:
-                                    var msgPkg = _jobQueue.DequeueList(queueName, batchSize, token);
+                                    var msgPkg = _jobQueue.DequeueList(queueName, numberOfMessageIWantToPick, token);
 
                                     for (int i = 0; i < msgPkg.Count; i++)
                                     {

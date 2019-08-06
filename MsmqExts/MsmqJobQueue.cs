@@ -15,8 +15,8 @@ namespace MsmqExts
     public class MsmqJobQueueSettings
     {
         public MsmqTransactionType TransactionType { get; set; }
-        public int TaskBatchSize { get; set; }
-        public TimeSpan ReceiveTimeout { get; set; }
+        public int? DequeueNbrOfTasks { get; set; }
+        public TimeSpan? ReceiveTimeout { get; set; }
     }
 
     public class MsmqJobQueue
@@ -29,13 +29,16 @@ namespace MsmqExts
             {
                 TransactionType = MsmqTransactionType.Internal,
                 ReceiveTimeout = TimeSpan.FromSeconds(5),
-                TaskBatchSize = 5
+                DequeueNbrOfTasks = 5
             };
         }
 
         public MsmqJobQueue(MsmqJobQueueSettings settings)
         {
             _settings = settings;
+
+            _settings.ReceiveTimeout = _settings.ReceiveTimeout ?? TimeSpan.FromSeconds(5);
+            _settings.DequeueNbrOfTasks = _settings.DequeueNbrOfTasks ?? 5;
         }
 
         public bool IsMatchType<T>(object obj) where T : class
@@ -59,7 +62,7 @@ namespace MsmqExts
             {
                 using (var messageQueue = new MessageQueue(queueName))
                 {
-                    var message = transaction.Receive(messageQueue, _settings.ReceiveTimeout);
+                    var message = transaction.Receive(messageQueue, (TimeSpan)_settings.ReceiveTimeout);
 
                     if (message != null && !string.IsNullOrWhiteSpace(message.Label))
                     {
@@ -107,17 +110,23 @@ namespace MsmqExts
             {
                 var listOfTasks = new List<Task>();
 
-                for (var i = 0; i < _settings.TaskBatchSize; i++)
+                for (var i = 0; i < _settings.DequeueNbrOfTasks; i++)
                 {
                     // Note that we start the Task here
                     listOfTasks.Add(Task.Run(() =>
                     {
                         result.Add(Dequeue(queueName, cancellationToken));
                     }));
+
+                    counter--;
+
+                    if (counter == 0)
+                    {
+                        break;
+                    }
                 }
 
-                Task.WaitAll(listOfTasks.ToArray());
-                counter = counter - _settings.TaskBatchSize;
+                Task.WaitAll(listOfTasks.ToArray());                
             }
 
             return result;
