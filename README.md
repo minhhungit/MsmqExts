@@ -32,13 +32,13 @@ try
     {
         Console.WriteLine($"- processing product <{prod.Id}>");
     }
-    deObj.RemoveFromQueue();
+    deObj.Commit();
 }
 catch (Exception ex)
 {
     Console.WriteLine($"Error: {ex.Message}");
     
-    deObj.Requeue();
+    deObj.Abort();
     deObj.Dispose();
 }
 ```
