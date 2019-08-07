@@ -93,7 +93,7 @@ namespace SimpleConsumerBatch
                         }
                         catch (Exception ex)
                         {
-                            // abort                            
+                            // first, clean up transaction
                             foreach (var item in cleanMessages)
                             {
                                 if (byPassIfError)
@@ -108,7 +108,7 @@ namespace SimpleConsumerBatch
                                 item?.Dispose();
                             }
 
-                            // lastly, if we don't want to bypass error, throw exception
+                            // second, if we don't want to bypass error, throw exception
                             if (!byPassIfError)
                             {
                                 throw ex;
