@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{CD31D38D-2850-4516-8BF3-AA0B59BD44CC}</ProjectGuid>
+    <ProjectGuid>{DB2ADC41-4A48-419E-8B4C-21CD621B4D3A}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>SimpleMsmqExtsSample</RootNamespace>
-    <AssemblyName>SimpleMsmqExtsSample</AssemblyName>
+    <RootNamespace>SimpleConsumerBatch</RootNamespace>
+    <AssemblyName>SimpleConsumerBatch</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -33,9 +33,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -51,12 +48,15 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\MsmqExts\MsmqExts.csproj">
       <Project>{E611A844-B575-4606-85AB-1DE47FDD6591}</Project>
       <Name>MsmqExts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SimpleMessage\SimpleMessage.csproj">
+      <Project>{9507037B-0DF7-4234-8AD3-07C9349D76D9}</Project>
+      <Name>SimpleMessage</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,52 +1,47 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 
 namespace MsmqExts
 {
-    public interface IFetchedJob : IDisposable
+    public enum DequeueResultStatus
+    {
+        Success = 1,
+        Timeout = 2,
+        Exception = 4
+    }
+
+    public interface IFetchedMessage : IDisposable
     {
         void Commit();
         void Abort();
         object Result { get; }
+        DequeueResultStatus DequeueResultStatus { get; }
+        Exception DequeueException { get; }
     }
 
-    public class MsmqFetchedJob : IFetchedJob
+    public class MsmqFetchedMessage : IFetchedMessage
     {
         private readonly IMsmqTransaction _transaction;
 
-        public MsmqFetchedJob(IMsmqTransaction transaction)
+        public MsmqFetchedMessage(IMsmqTransaction transaction, object result, DequeueResultStatus dequeueResultStatus, Exception dequeueEx)
         {
-            _transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
+            if (dequeueResultStatus == DequeueResultStatus.Success)
+            {
+                _transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
+                Result = result ?? throw new ArgumentNullException(nameof(result));
+            }
+
+            DequeueResultStatus = dequeueResultStatus;
+            DequeueException = dequeueEx;
         }
-
-        public MsmqFetchedJob(IMsmqTransaction transaction, string jsonBodyText, Type jsonTargetType)
-        {
-            _transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
-
-            JsonBodyText = jsonBodyText ?? throw new ArgumentNullException(nameof(jsonBodyText));
-            JsonTargetType = jsonTargetType ?? throw new ArgumentNullException(nameof(jsonTargetType));
-        }
-
-        public string JsonBodyText { get; }
-        public Type JsonTargetType { get; }
 
         /// <summary>
         /// Message object
         /// </summary>
-        public object Result
-        {
-            get
-            {
-                if (!string.IsNullOrWhiteSpace(JsonBodyText) && JsonTargetType != null)
-                {
-                    return JsonConvert.DeserializeObject(JsonBodyText, JsonTargetType);
-                }
-                else
-                {
-                    return null;
-                }
-            }
-        }
+        public object Result { get; private set; }
+
+        public DequeueResultStatus DequeueResultStatus { get; private set; }
+
+        public Exception DequeueException { get; private set; }
 
         public void Commit()
         {

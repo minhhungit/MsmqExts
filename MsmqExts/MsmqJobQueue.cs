@@ -10,10 +10,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
+using MsmqExts.Extensions;
 
 namespace MsmqExts
 {
-    public class MsmqJobQueueSettings
+    public class MsmqMessageQueueSettings
     {
         public MsmqTransactionType TransactionType { get; set; }
         public TimeSpan? ReceiveTimeout { get; set; }
@@ -30,18 +31,24 @@ namespace MsmqExts
         /// Default value = Environment.ProcessorCount * 5
         /// </summary>
         public int? DequeueWorkerCount { get; set; }
+
+        /// <summary>
+        /// Log callback method
+        /// </summary>
+        public Action<Exception> LogAction { get; set; }
     }
 
-    public class MsmqJobQueue
+    public class MsmqMessageQueue
     {
-        private readonly MsmqJobQueueSettings _settings = null;
+        private readonly MsmqMessageQueueSettings _settings = null;
         private static TimeSpan _receiveTimeoutDefault = TimeSpan.FromSeconds(2);
         private static bool _messageOrder = true;
         private static int _dequeueWorkerCount = Environment.ProcessorCount * 5;
+        public Action<Exception> LogAction { get; set; }
 
-        public MsmqJobQueue()
+        public MsmqMessageQueue()
         {
-            _settings = new MsmqJobQueueSettings
+            _settings = new MsmqMessageQueueSettings
             {
                 TransactionType = MsmqTransactionType.Internal,
                 ReceiveTimeout = _receiveTimeoutDefault,
@@ -50,7 +57,7 @@ namespace MsmqExts
             };
         }
 
-        public MsmqJobQueue(MsmqJobQueueSettings settings)
+        public MsmqMessageQueue(MsmqMessageQueueSettings settings)
         {
             _settings = settings;
 
@@ -70,7 +77,7 @@ namespace MsmqExts
         /// <param name="queueName"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public IFetchedJob Dequeue(string queueName, CancellationToken cancellationToken)
+        public IFetchedMessage Dequeue(string queueName, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -81,36 +88,27 @@ namespace MsmqExts
                 using (var messageQueue = new MessageQueue(queueName))
                 {
                     var message = transaction.Receive(messageQueue, (TimeSpan)_settings.ReceiveTimeout);
+                    var messageBody = message.BodyStream.ReadFromJson(message.Label);
 
-                    if (message != null && !string.IsNullOrWhiteSpace(message.Label))
-                    {
-                        using (var reader = new StreamReader(message.BodyStream))
-                        {
-                            var msgType = Type.GetType(message.Label);
-
-                            if (msgType != null)
-                            {
-                                return new MsmqFetchedJob(transaction, reader.ReadToEnd(), msgType);
-                            }
-                            else
-                            {
-                                // return and developer will decide how to process invaild message
-                                return new MsmqFetchedJob(transaction);
-                            }
-                        }
-                    }
+                    return new MsmqFetchedMessage(transaction, messageBody, DequeueResultStatus.Success, null);
                 }
             }
             catch (MessageQueueException ex) when (ex.MessageQueueErrorCode == MessageQueueErrorCode.IOTimeout)
             {
+                transaction.Abort();
+                transaction.Dispose();
 
+                return new MsmqFetchedMessage(null, null, DequeueResultStatus.Timeout, null);
             }
-            finally
+            catch(Exception ex)
             {
+                transaction.Abort();
+                transaction.Dispose();
 
-            }
+                LogAction?.Invoke(ex);
 
-            return null;
+                return new MsmqFetchedMessage(null, null, DequeueResultStatus.Exception, ex);
+            }            
         }
 
         /// <summary>
@@ -120,21 +118,37 @@ namespace MsmqExts
         /// <param name="nbrMessages">Number of messages you want to pick</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public List<IFetchedJob> DequeueList(string queueName, int nbrMessages, CancellationToken cancellationToken)
+        public List<IFetchedMessage> DequeueList(string queueName, int nbrMessages, CancellationToken cancellationToken)
         {
             if (_settings.MessageOrder ?? false)
             {
-                var result = new List<IFetchedJob>();
+                var result = new List<IFetchedMessage>();
                 for (var i = 0; i < nbrMessages; i++)
                 {
-                    result.Add(Dequeue(queueName, cancellationToken));
+                    var msg = Dequeue(queueName, cancellationToken);
+                    if (msg.DequeueResultStatus == DequeueResultStatus.Success)
+                    {
+                        result.Add(msg);
+                    }
+                    else
+                    {
+                        // if message is timeout then return
+                        if (msg.DequeueResultStatus == DequeueResultStatus.Timeout)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            throw msg.DequeueException ?? new Exception("Has error when dequeue message in queue");
+                        }
+                    }
                 }
 
                 return result;
             }
             else
             {
-                var msgQueue = new ConcurrentBag<IFetchedJob>();
+                var msgQueue = new ConcurrentBag<IFetchedMessage>();
                 var counter = nbrMessages;
                 while (counter > 0)
                 {
@@ -159,11 +173,11 @@ namespace MsmqExts
                     Task.WaitAll(listOfTasks.ToArray());
                 }
 
-                var result = new List<IFetchedJob>();
+                var result = new List<IFetchedMessage>();
 
                 while (!msgQueue.IsEmpty)
                 {
-                    if (msgQueue.TryTake(out IFetchedJob msg))
+                    if (msgQueue.TryTake(out IFetchedMessage msg))
                     {
                         result.Add(msg);
                     }
@@ -183,22 +197,30 @@ namespace MsmqExts
         /// <param name="obj">Message</param>
         public void Enqueue<T>(string queueName, T obj)
         {
-            using (var messageQueue = new MessageQueue(queueName))
-            using (MemoryStream messageMemory = new MemoryStream(Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(obj))))
+            try
             {
-                using (var message = new Message
+                using (var messageQueue = new MessageQueue(queueName))
+                using (MemoryStream messageMemory = new MemoryStream(Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(obj))))
                 {
-                    BodyStream = messageMemory,
-                    Label = obj.GetType().AssemblyQualifiedName,
-                    Recoverable = true,
-                    UseDeadLetterQueue = true,
-                })
-                using (var transaction = new MessageQueueTransaction())
-                {
-                    transaction.Begin();
-                    messageQueue.Send(message, transaction);
-                    transaction.Commit();
+                    using (var message = new Message
+                    {
+                        BodyStream = messageMemory,
+                        Label = obj.GetType().AssemblyQualifiedName,
+                        Recoverable = true,
+                        UseDeadLetterQueue = true,
+                    })
+                    using (var transaction = new MessageQueueTransaction())
+                    {
+                        transaction.Begin();
+                        messageQueue.Send(message, transaction);
+                        transaction.Commit();
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                LogAction?.Invoke(ex);
+                throw;
             }
         }
 

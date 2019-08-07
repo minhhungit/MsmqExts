@@ -10,7 +10,7 @@ using Experimental.System.Messaging;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
-namespace MsmqExts
+namespace MsmqExts.Extensions
 {
     public static class MessageQueueExtensions
     {

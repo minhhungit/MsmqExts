@@ -8,14 +8,14 @@ Install-Package MsmqExts
 
 ### Simple Publisher
 ```csharp
-var _jobQueue = new MsmqJobQueue();
+var _messageQueue = new MsmqMessageQueue();
 var obj = new Product
 {
     Id = 1,
     Name = @"Jin"
 };
 
-_jobQueue.Enqueue("my-queue", obj);
+_messageQueue.Enqueue("my-queue", obj);
 ```
 
 ### Simple Consumer
@@ -23,9 +23,9 @@ _jobQueue.Enqueue("my-queue", obj);
 CancellationTokenSource tokenSource = new CancellationTokenSource();
 CancellationToken token = tokenSource.Token;
 
-var _jobQueue = new MsmqJobQueue();
+var _messageQueue = new MsmqMessageQueue();
 
-using(var deObj = _jobQueue.Dequeue("my-queue", token))
+using(var deObj = _messageQueue.Dequeue("my-queue", token))
 {
     try
     {

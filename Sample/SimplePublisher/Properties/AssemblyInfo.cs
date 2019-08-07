@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("DemoMsmqExts.Publisher")]
+[assembly: AssemblyTitle("SimplePublisher")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("DemoMsmqExts.Publisher")]
+[assembly: AssemblyProduct("SimplePublisher")]
 [assembly: AssemblyCopyright("Copyright ©  2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("86c9a3fb-0789-495b-94ee-257373c15d8f")]
+[assembly: Guid("8b28291e-202b-4a08-9679-7b4275f8723f")]
 
 // Version information for an assembly consists of the following four values:
 //

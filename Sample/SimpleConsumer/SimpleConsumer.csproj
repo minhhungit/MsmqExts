@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A4FA8A5F-F75B-4507-BC74-1230A2E4387C}</ProjectGuid>
+    <ProjectGuid>{0C04B5EA-F516-499C-9E0F-86EF2852D5E4}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>DemoMsmqExts.Consumer</RootNamespace>
-    <AssemblyName>DemoMsmqExts.Consumer</AssemblyName>
+    <RootNamespace>SimpleConsumer</RootNamespace>
+    <AssemblyName>SimpleConsumer</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -35,7 +35,6 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Messaging" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -51,13 +50,13 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DemoMsmqExts.Messages\DemoMsmqExts.Messages.csproj">
-      <Project>{b22988ae-9ceb-4b1f-9f90-08259ebd6f93}</Project>
-      <Name>DemoMsmqExts.Messages</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\MsmqExts\MsmqExts.csproj">
-      <Project>{e611a844-b575-4606-85ab-1de47fdd6591}</Project>
+      <Project>{E611A844-B575-4606-85AB-1DE47FDD6591}</Project>
       <Name>MsmqExts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SimpleMessage\SimpleMessage.csproj">
+      <Project>{9507037b-0df7-4234-8ad3-07c9349d76d9}</Project>
+      <Name>SimpleMessage</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
