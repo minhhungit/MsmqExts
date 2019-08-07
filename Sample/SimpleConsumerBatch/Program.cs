@@ -9,8 +9,13 @@ namespace SimpleConsumerBatch
 {
     public enum DequeueExceptionBehavior
     {
+        // throw exception immediately if see any EX (Exception) message
         ThrowImmediately = 1,
-        OnlyThrowFailureMessage = 2,
+
+        // if has EX message, firstly process success messages then throw Exception after success messages are processed
+        ThrowAfterProcessSuccessMessages = 2,
+
+        // continues even there is EX message
         Continues = 4
     }
 
@@ -19,23 +24,31 @@ namespace SimpleConsumerBatch
         static MsmqMessageQueue _messageQueue = new MsmqMessageQueue(new MsmqMessageQueueSettings { ReceiveTimeout = TimeSpan.FromSeconds(1), MessageOrder = false, DequeueWorkerCount = Environment.ProcessorCount * 1 });
         const string QUEUE_NAME = ".\\private$\\hungvo-hello";
         static List<ProductMessage> _fakeDatabase = new List<ProductMessage>();
+        static CancellationTokenSource _tokenSource = new CancellationTokenSource();
+        static CancellationToken _token = _tokenSource.Token;
 
         static void Main(string[] args)
         {
-            var exceptionBehavior = DequeueExceptionBehavior.OnlyThrowFailureMessage;
+            // there settings should be in  app settings
+            var exceptionBehavior = DequeueExceptionBehavior.ThrowAfterProcessSuccessMessages;
             bool byPassIfError = true;
             TimeSpan outOfMessageDelay = TimeSpan.FromSeconds(30);
 
             Console.WriteLine("batch fetching, please wait...");
+            Console.WriteLine("------------------------------");
 
-            CancellationTokenSource tokenSource = new CancellationTokenSource();
-            CancellationToken token = tokenSource.Token;
+            var cleanMessages = new List<IFetchedMessage>();
 
-            try
+            while (true)
             {
-                while (true)
+                var canBeOutOfMessages = false;
+                try
                 {
-                    var messages = _messageQueue.DequeueList(QUEUE_NAME, 10, token);
+                    // make sure that we cleaned up store
+                    cleanMessages = new List<IFetchedMessage>();
+
+                    var messages = _messageQueue.DequeueList(QUEUE_NAME, 10, _token);
+                    canBeOutOfMessages = messages.Any(x => x.DequeueResultStatus != DequeueResultStatus.Success);
                     var firstErrorMessage = messages.FirstOrDefault(x => x.DequeueResultStatus == DequeueResultStatus.Exception);
 
                     if (firstErrorMessage != null && exceptionBehavior == DequeueExceptionBehavior.ThrowImmediately)
@@ -45,7 +58,7 @@ namespace SimpleConsumerBatch
                     else
                     {
                         //transaction store
-                        var cleanMessages = messages.Where(x => x.DequeueResultStatus == DequeueResultStatus.Success).ToList();
+                        cleanMessages = messages.Where(x => x.DequeueResultStatus == DequeueResultStatus.Success).ToList();
 
                         // product store
                         var batchProducts = new List<ProductMessage>();
@@ -60,87 +73,75 @@ namespace SimpleConsumerBatch
                             else
                             {
                                 // invaild message (which did not match any type)
-                                if (byPassIfError)
-                                {
-                                    item?.Commit();
-                                    item?.Dispose();
-                                }
-                                else
-                                {
-                                    // invaild message
-                                    throw new Exception("Invaild message");
-                                }
+                                throw new Exception("Invaild message");
                             }
                         }
+
+                        #region This block should be in transaction
 
                         // demo bulk import
-                        try
+                        if (batchProducts.Any())
                         {
-                            if (batchProducts.Any())
-                            {
-                                // should be in transaction, this is demo so imagine that we used transaction
-                                _fakeDatabase.AddRange(batchProducts);
-                            }
-                            
-                            Console.WriteLine($"Total records in DB: { _fakeDatabase.Count}");
-
-                            // commit
-                            foreach (var item in cleanMessages)
-                            {
-                                item?.Commit();
-                                item?.Dispose();
-                            }
+                            _fakeDatabase.AddRange(batchProducts);
                         }
-                        catch (Exception ex)
+
+                        // commit
+                        foreach (var msg in cleanMessages)
                         {
-                            // first, clean up transaction
-                            foreach (var item in cleanMessages)
-                            {
-                                if (byPassIfError)
-                                {
-                                    item?.Commit();
-                                }
-                                else
-                                {
-                                    item?.Abort();
-                                }
-
-                                item?.Dispose();
-                            }
-
-                            // second, if we don't want to bypass error, throw exception
-                            if (!byPassIfError)
-                            {
-                                throw ex;
-                            }                            
+                            msg?.Commit();
+                            msg.Dispose();
                         }
+
+                        Console.WriteLine($"Total records in DB: { _fakeDatabase.Count}");
+
+                        #endregion
 
                         // ThrowFailureMessage
-                        if (firstErrorMessage != null && exceptionBehavior == DequeueExceptionBehavior.OnlyThrowFailureMessage)
+                        if (firstErrorMessage != null && exceptionBehavior == DequeueExceptionBehavior.ThrowAfterProcessSuccessMessages)
                         {
                             throw firstErrorMessage.DequeueException;
                         }
                     }
 
-                    // if has error or timeout then wait a bit
-                    if (messages.Any(x => x.DequeueResultStatus != DequeueResultStatus.Success))
+                    Console.WriteLine("-------O-K-------");
+                }
+                catch(Exception ex)
+                {
+                    foreach (var msg in cleanMessages)
                     {
-                        Thread.Sleep(outOfMessageDelay);
+                        try
+                        {
+                            if (byPassIfError)
+                            {
+                                msg?.Commit();
+                            }
+                            else
+                            {
+                                msg?.Abort();
+                            }
+
+                            msg?.Dispose();
+                        }
+                        catch { }
                     }
 
-                    Thread.Sleep(10);
-                    Console.WriteLine("--------------");
+                    if (!byPassIfError)
+                    {
+                        Console.WriteLine($"{ex.Message}\nConsumer will be stopped !!!");
+                        break;
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                if (!byPassIfError)
+
+                // if has error or timeout then wait a bit
+                if (canBeOutOfMessages)
                 {
-                    Console.WriteLine($"{ex.Message}\nConsumer will be stopped !!!");
-                    //throw ex;
+                    Thread.Sleep(outOfMessageDelay);
                 }
+
+                Thread.Sleep(5);
             }
 
+            Console.WriteLine("stopped");
             Console.ReadKey();
         }
     }
