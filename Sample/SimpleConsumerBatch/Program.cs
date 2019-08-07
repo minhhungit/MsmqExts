@@ -40,12 +40,14 @@ namespace SimpleConsumerBatch
 
                     if (firstErrorMessage != null && exceptionBehavior == DequeueExceptionBehavior.ThrowImmediately)
                     {
-                        throw new Exception("Has Error: " + firstErrorMessage.DequeueException?.Message);
+                        throw firstErrorMessage.DequeueException;
                     }
                     else
                     {
+                        //transaction store
                         var cleanMessages = messages.Where(x => x.DequeueResultStatus == DequeueResultStatus.Success).ToList();
 
+                        // product store
                         var batchProducts = new List<ProductMessage>();
 
                         // parse
@@ -53,13 +55,11 @@ namespace SimpleConsumerBatch
                         {
                             if (item.Result is ProductMessage prod)
                             {
-                                //var shortId = prod.Id.ToString().Substring(0, 7);
-                                //Console.WriteLine($"- processing product <{shortId}> - {prod.CreatedDate.ToString("HH:mm:ss.fff")}");
-
                                 batchProducts.Add(prod);
                             }
                             else
                             {
+                                // invaild message (which did not match any type)
                                 if (byPassIfError)
                                 {
                                     item?.Commit();
@@ -108,13 +108,17 @@ namespace SimpleConsumerBatch
                                 item?.Dispose();
                             }
 
-                            throw ex;
+                            // lastly, if we don't want to bypass error, throw exception
+                            if (!byPassIfError)
+                            {
+                                throw ex;
+                            }                            
                         }
 
                         // ThrowFailureMessage
                         if (firstErrorMessage != null && exceptionBehavior == DequeueExceptionBehavior.OnlyThrowFailureMessage)
                         {
-                            throw new Exception("Has Error: " + firstErrorMessage.DequeueException?.Message);
+                            throw firstErrorMessage.DequeueException;
                         }
                     }
 
