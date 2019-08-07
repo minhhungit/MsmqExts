@@ -1,6 +1,7 @@
 ﻿using MsmqExts;
 using SimpleMessage;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -17,6 +18,7 @@ namespace SimpleConsumerBatch
     {
         static MsmqMessageQueue _messageQueue = new MsmqMessageQueue(new MsmqMessageQueueSettings { ReceiveTimeout = TimeSpan.FromSeconds(1), MessageOrder = false, DequeueWorkerCount = Environment.ProcessorCount * 1 });
         const string QUEUE_NAME = ".\\private$\\hungvo-hello";
+        static List<ProductMessage> _fakeDatabase = new List<ProductMessage>();
 
         static void Main(string[] args)
         {
@@ -42,18 +44,19 @@ namespace SimpleConsumerBatch
                     }
                     else
                     {
-                        // import
                         var cleanMessages = messages.Where(x => x.DequeueResultStatus == DequeueResultStatus.Success).ToList();
 
+                        var batchProducts = new List<ProductMessage>();
+
+                        // parse
                         foreach (var item in cleanMessages)
                         {
                             if (item.Result is ProductMessage prod)
                             {
-                                var shortId = prod.Id.ToString().Substring(0, 7);
-                                Console.WriteLine($"- processing product <{shortId}> - {prod.CreatedDate.ToString("HH:mm:ss.fff")}");
+                                //var shortId = prod.Id.ToString().Substring(0, 7);
+                                //Console.WriteLine($"- processing product <{shortId}> - {prod.CreatedDate.ToString("HH:mm:ss.fff")}");
 
-                                item?.Commit();
-                                item?.Dispose();
+                                batchProducts.Add(prod);
                             }
                             else
                             {
@@ -68,6 +71,44 @@ namespace SimpleConsumerBatch
                                     throw new Exception("Invaild message");
                                 }
                             }
+                        }
+
+                        // demo bulk import
+                        try
+                        {
+                            if (batchProducts.Any())
+                            {
+                                // should be in transaction, this is demo so imagine that we used transaction
+                                _fakeDatabase.AddRange(batchProducts);
+                            }
+                            
+                            Console.WriteLine($"Total records in DB: { _fakeDatabase.Count}");
+
+                            // commit
+                            foreach (var item in cleanMessages)
+                            {
+                                item?.Commit();
+                                item?.Dispose();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // abort                            
+                            foreach (var item in cleanMessages)
+                            {
+                                if (byPassIfError)
+                                {
+                                    item?.Commit();
+                                }
+                                else
+                                {
+                                    item?.Abort();
+                                }
+
+                                item?.Dispose();
+                            }
+
+                            throw ex;
                         }
 
                         // ThrowFailureMessage
