@@ -90,7 +90,7 @@ namespace MsmqExts
                     var message = transaction.Receive(messageQueue, (TimeSpan)_settings.ReceiveTimeout);
                     var messageBody = message.BodyStream.ReadFromJson(message.Label);
 
-                    return new MsmqFetchedMessage(transaction, messageBody, DequeueResultStatus.Success, null);
+                    return new MsmqFetchedMessage(transaction, message.Label, messageBody, DequeueResultStatus.Success, null);
                 }
             }
             catch (MessageQueueException ex) when (ex.MessageQueueErrorCode == MessageQueueErrorCode.IOTimeout)
@@ -98,7 +98,7 @@ namespace MsmqExts
                 transaction.Abort();
                 transaction.Dispose();
 
-                return new MsmqFetchedMessage(null, null, DequeueResultStatus.Timeout, null);
+                return new MsmqFetchedMessage(null, null, null, DequeueResultStatus.Timeout, null);
             }
             catch(Exception ex)
             {
@@ -107,7 +107,7 @@ namespace MsmqExts
 
                 LogAction?.Invoke(ex);
 
-                return new MsmqFetchedMessage(null, null, DequeueResultStatus.Exception, ex);
+                return new MsmqFetchedMessage(null, null, null, DequeueResultStatus.Exception, ex);
             }            
         }
 
@@ -194,8 +194,9 @@ namespace MsmqExts
         /// </summary>
         /// <typeparam name="T">Type of message</typeparam>
         /// <param name="queueName">Queue name</param>
+        /// <param name="label">Message label</param>
         /// <param name="obj">Message</param>
-        public void Enqueue<T>(string queueName, T obj)
+        public void Enqueue<T>(string queueName, string label, T obj)
         {
             try
             {
@@ -205,7 +206,7 @@ namespace MsmqExts
                     using (var message = new Message
                     {
                         BodyStream = messageMemory,
-                        Label = obj.GetType().AssemblyQualifiedName,
+                        Label = label,
                         Recoverable = true,
                         UseDeadLetterQueue = true,
                     })
@@ -222,6 +223,17 @@ namespace MsmqExts
                 LogAction?.Invoke(ex);
                 throw;
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T">Type of message</typeparam>
+        /// <param name="queueName">Queue name</param>
+        /// <param name="obj">Message</param>
+        public void Enqueue<T>(string queueName, T obj)
+        {
+            Enqueue(queueName, obj.GetType().AssemblyQualifiedName, obj);
         }
 
         private IMsmqTransaction CreateTransaction()

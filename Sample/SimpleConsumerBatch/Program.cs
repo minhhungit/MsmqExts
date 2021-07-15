@@ -138,7 +138,7 @@ namespace SimpleConsumerBatch
                     Thread.Sleep(outOfMessageDelay);
                 }
 
-                Thread.Sleep(5);
+                Thread.Sleep(TimeSpan.FromMilliseconds(1));
             }
 
             Console.WriteLine("stopped");

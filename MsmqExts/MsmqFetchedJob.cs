@@ -13,6 +13,7 @@ namespace MsmqExts
     {
         void Commit();
         void Abort();
+        string Label { get; }
         object Result { get; }
         DequeueResultStatus DequeueResultStatus { get; }
         Exception DequeueException { get; }
@@ -22,17 +23,25 @@ namespace MsmqExts
     {
         private readonly IMsmqTransaction _transaction;
 
-        public MsmqFetchedMessage(IMsmqTransaction transaction, object result, DequeueResultStatus dequeueResultStatus, Exception dequeueEx)
+        public MsmqFetchedMessage(IMsmqTransaction transaction, string label, object result, DequeueResultStatus dequeueResultStatus, Exception dequeueEx)
         {
+            if (string.IsNullOrWhiteSpace(label))
+            {
+                throw new Exception("Label should not null or empty");
+            }
+
             if (dequeueResultStatus == DequeueResultStatus.Success)
             {
                 _transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
+                Label = label ?? throw new ArgumentNullException(nameof(label));
                 Result = result ?? throw new ArgumentNullException(nameof(result));
             }
 
             DequeueResultStatus = dequeueResultStatus;
             DequeueException = dequeueEx;
         }
+
+        public string Label { get; private set; }
 
         /// <summary>
         /// Message object

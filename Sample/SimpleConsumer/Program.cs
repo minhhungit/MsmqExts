@@ -59,7 +59,7 @@ namespace SimpleConsumer
                             break;
                     }
 
-                    Thread.Sleep(10);
+                    Thread.Sleep(TimeSpan.FromMilliseconds(1));
                 }
             }
             catch (Exception ex)

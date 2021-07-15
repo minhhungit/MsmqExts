@@ -27,7 +27,7 @@ namespace SimplePublisher
                     Console.WriteLine("Enqueuing: " + JsonConvert.SerializeObject(obj));
 
                     _messageQueue.Enqueue(QUEUE_NAME, obj);
-                    Thread.Sleep(100);
+                    Thread.Sleep(TimeSpan.FromMilliseconds(1));
                 }
 
             }
