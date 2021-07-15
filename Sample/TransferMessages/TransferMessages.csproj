@@ -51,11 +51,11 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MsmqExts\MsmqExts.csproj">
+    <ProjectReference Include="..\..\MsmqExts\MsmqExts.csproj">
       <Project>{E611A844-B575-4606-85AB-1DE47FDD6591}</Project>
       <Name>MsmqExts</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Sample\SimpleMessage\SimpleMessage.csproj">
+    <ProjectReference Include="..\SimpleMessage\SimpleMessage.csproj">
       <Project>{9507037B-0DF7-4234-8AD3-07C9349D76D9}</Project>
       <Name>SimpleMessage</Name>
     </ProjectReference>

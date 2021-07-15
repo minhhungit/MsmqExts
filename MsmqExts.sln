@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleMessage", "Sample\Sim
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleConsumerBatch", "Sample\SimpleConsumerBatch\SimpleConsumerBatch.csproj", "{DB2ADC41-4A48-419E-8B4C-21CD621B4D3A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransferMessages", "TransferMessages\TransferMessages.csproj", "{EFF1889E-B72D-48A3-9B35-B84891BDB33D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransferMessages", "Sample\TransferMessages\TransferMessages.csproj", "{EFF1889E-B72D-48A3-9B35-B84891BDB33D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
