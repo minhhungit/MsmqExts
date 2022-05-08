@@ -6,5 +6,6 @@ namespace SimpleMessage
     {
         public Guid Id { get; set; }
         public DateTime CreatedDate { get; set; }
+        public int Seq { get; set; }
     }
 }

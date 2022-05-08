@@ -28,3 +28,5 @@
 /DemoMsmqExts.PublisherNetCore/bin/Debug/netcoreapp2.2
 bin
 obj
+/.vs/MsmqExts/DesignTimeBuild
+/.vs/MsmqExts/v17

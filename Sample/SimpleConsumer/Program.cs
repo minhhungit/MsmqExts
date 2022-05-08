@@ -1,30 +1,33 @@
 ﻿using MsmqExts;
 using SimpleMessage;
 using System;
-using System.Linq;
 using System.Threading;
 
 namespace SimpleConsumer
 {
     class Program
     {
-        static MsmqMessageQueue _messageQueue = new MsmqMessageQueue();
-        const string QUEUE_NAME = ".\\private$\\hungvo-hello";
-
         static void Main(string[] args)
         {
+            var msmqMessageQueue = new MsmqMessageQueue(".\\private$\\hungvo-hello");
+
             bool byPassIfError = true;
+            bool ignoreMessageIfHasNoHandler = false;
 
             Console.WriteLine("fetching, please wait...");
 
             CancellationTokenSource tokenSource = new CancellationTokenSource();
             CancellationToken token = tokenSource.Token;
 
-            try
+            while (true)
             {
-                while (true)
+                IFetchedMessage message = null;
+                string messageLabel = string.Empty;
+
+                try
                 {
-                    var message = _messageQueue.Dequeue(QUEUE_NAME, token);
+                    message = msmqMessageQueue.Dequeue(token);
+                    messageLabel = message.Label;
 
                     switch (message.DequeueResultStatus)
                     {
@@ -32,42 +35,59 @@ namespace SimpleConsumer
                             if (message.Result is ProductMessage prod)
                             {
                                 var shortId = prod.Id.ToString().Substring(0, 7);
-                                Console.WriteLine($"- processing product <{shortId}> - {prod.CreatedDate.ToString("HH:mm:ss.fff")}");
+                                Console.WriteLine($"- got product in {Math.Round(message.DequeueElapsed.TotalMilliseconds, 2)}ms | [<{prod.Seq} / {shortId}> - {prod.CreatedDate.ToString("HH:mm:ss.fff")}]");
 
-                                message?.Commit();
+                                message?.CommitTransaction();
                                 message?.Dispose();
                             }
                             else
                             {
-                                if (byPassIfError)
-                                {
-                                    message?.Commit();
-                                    message?.Dispose();
-                                }
-                                else
-                                {
-                                    // invaild message
-                                    throw new Exception("Invaild message");
-                                }
+                                throw new MessageHasNoHandlerException();
                             }
                             break;
                         case DequeueResultStatus.Timeout:
+                            Console.WriteLine($"Dequeue got timeout ({msmqMessageQueue.Settings.ReceiveTimeout.TotalSeconds} seconds), this is an informational message only, no user action is required.");
                             break;
                         case DequeueResultStatus.Exception:
-                            throw new Exception("Has Error: " + message.DequeueException?.Message);
+                            throw new Exception("Dequeue message got error: " + message.DequeueException?.Message);
                         default:
                             break;
                     }
 
-                    Thread.Sleep(TimeSpan.FromMilliseconds(1));
                 }
-            }
-            catch (Exception ex)
-            {
-                if (!byPassIfError)
+                catch (MessageHasNoHandlerException)
                 {
-                    Console.WriteLine($"{ex.Message}\nConsumer will be stopped !!!");
-                    //throw ex;
+                    if (ignoreMessageIfHasNoHandler)
+                    {
+                        message?.CommitTransaction();
+                        Console.WriteLine($"Message has no handler, but was ignored [ignoreMessageIfHasNoHandler={ignoreMessageIfHasNoHandler}], message label is {messageLabel}, this is an informational message only, no user action is required.");
+                        message?.Dispose();
+                    }
+                    else
+                    {
+                        message?.AbortTransaction();                        
+                        Console.WriteLine($"Message has no handler, message label is {messageLabel}");
+                        message?.Dispose();
+
+                        break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (byPassIfError)
+                    {
+                        message?.CommitTransaction();
+                        Console.WriteLine($"Got an error message, but was ignored [byPassIfError = {byPassIfError}], this is an informational message only, no user action is required.");
+                        message?.Dispose();
+                    }
+                    else
+                    {
+                        message?.AbortTransaction();
+                        Console.WriteLine($"Got an error {ex.Message}");
+                        message?.Dispose();
+
+                        break;
+                    }
                 }
             }
 

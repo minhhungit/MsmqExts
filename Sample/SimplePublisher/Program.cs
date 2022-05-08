@@ -2,34 +2,41 @@
 using Newtonsoft.Json;
 using SimpleMessage;
 using System;
+using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace SimplePublisher
 {
     class Program
     {
-        static MsmqMessageQueue _messageQueue = new MsmqMessageQueue();
-        const string QUEUE_NAME = ".\\private$\\hungvo-hello";
-
         static void Main(string[] args)
         {
+            var batchSize = 10000;
             try
             {
+                MsmqMessageQueue messageQueue = new MsmqMessageQueue(".\\private$\\hungvo-hello");
+
                 while (true)
                 {
-                    var id = Guid.NewGuid();
-                    var obj = new ProductMessage
+                    Stopwatch sw = Stopwatch.StartNew();
+
+                    Parallel.For(0, batchSize, i =>
                     {
-                        Id = id,
-                        CreatedDate = DateTime.Now
-                    };
+                        var obj = new ProductMessage
+                        {
+                            Id = Guid.NewGuid(),
+                            CreatedDate = DateTime.Now,
+                            Seq = i
+                        };
 
-                    Console.WriteLine("Enqueuing: " + JsonConvert.SerializeObject(obj));
+                        messageQueue.Enqueue(obj);
+                    });
 
-                    _messageQueue.Enqueue(QUEUE_NAME, obj);
-                    Thread.Sleep(TimeSpan.FromMilliseconds(1));
+                    sw.Stop();
+
+                    Console.WriteLine($"Sent {batchSize} in {sw.Elapsed.TotalMilliseconds}ms, avg {Math.Round(sw.Elapsed.TotalMilliseconds / batchSize, 2)}ms per message");
                 }
-
             }
             catch (Exception ex)
             {
