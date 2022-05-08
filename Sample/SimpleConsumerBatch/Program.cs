@@ -38,7 +38,7 @@ namespace SimpleConsumerBatch
             // there settings should be in  app settings
             bool byPassIfError = true;
             int batchSize = 1000;
-            TimeSpan outOfMessageDelayTime = TimeSpan.FromSeconds(5);
+            TimeSpan outOfMessageDelayTime = TimeSpan.FromSeconds(10);
 
             Task.Run(() =>
             {

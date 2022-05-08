@@ -24,6 +24,7 @@ namespace SimpleConsumer
 
             bool byPassIfError = true;
             bool ignoreMessageIfHasNoHandler = false;
+            TimeSpan outOfMessageDelayTime = TimeSpan.FromSeconds(10);
 
             Console.WriteLine("fetching, please wait...");
 
@@ -54,7 +55,8 @@ namespace SimpleConsumer
                             }
                             break;
                         case DequeueResultStatus.Timeout:
-                            Console.WriteLine($"Dequeue got timeout ({msmqMessageQueue.Settings.ReceiveTimeout.TotalSeconds} seconds), this is an informational message only, no user action is required.");
+                            Console.WriteLine($"Dequeue got timeout ({msmqMessageQueue.Settings.ReceiveTimeout.TotalSeconds} seconds), and will be delayed in {outOfMessageDelayTime.TotalSeconds} sec to next dequeue. This is an informational message only, no user action is required.");
+                            Thread.Sleep(outOfMessageDelayTime);
                             break;
                         case DequeueResultStatus.Exception:
                             throw new Exception("Dequeue message got error: " + message.DequeueException?.Message);
