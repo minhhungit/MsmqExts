@@ -10,7 +10,7 @@
     <RepositoryUrl>https://github.com/minhhungit/MsmqExts</RepositoryUrl>
     <PackageTags>msmq message-queue</PackageTags>
     <PackageLicenseUrl>https://github.com/minhhungit/MsmqExts/blob/master/LICENSE</PackageLicenseUrl>
-    <Version>1.2.2</Version>
+    <Version>2.0.0-rc01</Version>
     <PackageReleaseNotes></PackageReleaseNotes>
   </PropertyGroup>
 
