@@ -50,7 +50,7 @@ namespace SimpleConsumer
                             }
                             else
                             {
-                                throw new MessageHasNoHandlerException();
+                                throw new MsmqMessageHasNoHandlerException();
                             }
                             break;
                         case DequeueResultStatus.Timeout:
@@ -63,7 +63,7 @@ namespace SimpleConsumer
                     }
 
                 }
-                catch (MessageHasNoHandlerException)
+                catch (MsmqMessageHasNoHandlerException)
                 {
                     if (ignoreMessageIfHasNoHandler)
                     {

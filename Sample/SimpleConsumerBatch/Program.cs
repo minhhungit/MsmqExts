@@ -107,7 +107,7 @@ namespace SimpleConsumerBatch
                             msg.Dispose();
                         }
 
-                        throw new MessageHasNoHandlerException();
+                        throw new MsmqMessageHasNoHandlerException();
                     }
                     else // if all message are valid, we will process them, here is simple demo of a batch insert
                     {
@@ -125,7 +125,7 @@ namespace SimpleConsumerBatch
                         }
                     }
                 }
-                catch (MessageHasNoHandlerException)
+                catch (MsmqMessageHasNoHandlerException)
                 {
                     Console.WriteLine($"Message has no handler, consumer will be stopped, please review your code, message label is [{noHandlerMessage.Label}]");
                     break;
