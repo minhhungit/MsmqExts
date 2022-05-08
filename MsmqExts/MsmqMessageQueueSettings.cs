@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MsmqExts.Extensions;
+using Newtonsoft.Json;
+using System;
 #if NET462
 using System.Messaging;
 #else
@@ -11,6 +13,10 @@ namespace MsmqExts
         public MsmqMessageQueueSettings()
         {
             TransactionType = MsmqTransactionType.Internal;
+            JsonSerializerSettings = new JsonSerializerSettings
+            {
+                ContractResolver = new PrivateSetterContractResolver()
+            };
         }
 
         public MsmqTransactionType TransactionType { get; set; }
@@ -20,7 +26,7 @@ namespace MsmqExts
         /// If receive timeout is set to null then it will be set to 2 seconds like default value
         /// </summary>
         public TimeSpan ReceiveTimeout { get; set; } = TimeSpan.FromSeconds(2);
-
+        public JsonSerializerSettings JsonSerializerSettings { get; set; }
         public Action<Exception> LogExceptioAction { get; set; }
         public Action<TimeSpan> LogEnqueueElapsedTimeAction { get; set; }
         public Action<TimeSpan> LogDequeueElapsedTimeAction { get; set; }

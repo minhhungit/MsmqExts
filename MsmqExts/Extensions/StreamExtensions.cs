@@ -12,23 +12,30 @@ namespace MsmqExts.Extensions
             return reader.ReadToEnd();
         }
 
-        //public static T ReadFromJson<T>(this Stream stream)
+        //public static T ReadFromJson<T>(this Stream stream, JsonSerializerSettings jsonSerializerSettings)
         //{
-        //    var json = stream.ReadToEnd();
-        //    return JsonConvert.DeserializeObject<T>(json, new JsonSerializerSettings
+        //    if (jsonSerializerSettings == null)
         //    {
-        //        ContractResolver = new PrivateSetterContractResolver()
-        //    });
+        //        return JsonConvert.DeserializeObject<T>(stream.ReadToEnd());
+        //    }
+        //    else
+        //    {
+        //        return JsonConvert.DeserializeObject<T>(stream.ReadToEnd(), jsonSerializerSettings);
+        //    }
         //}
 
-        public static object ReadFromJson(this Stream stream, string messageType)
+        public static object ReadFromJson(this Stream stream, string messageType, JsonSerializerSettings jsonSerializerSettings)
         {
             //return JsonConvert.DeserializeObject(stream.ReadToEnd(), Type.GetType(messageType));
 
-            return JsonConvert.DeserializeObject(stream.ReadToEnd(), Type.GetType(messageType), new JsonSerializerSettings
+            if (jsonSerializerSettings == null)
             {
-                ContractResolver = new PrivateSetterContractResolver()
-            });
+                return JsonConvert.DeserializeObject(stream.ReadToEnd(), Type.GetType(messageType));
+            }
+            else
+            {
+                return JsonConvert.DeserializeObject(stream.ReadToEnd(), Type.GetType(messageType), jsonSerializerSettings);
+            }
         }
     }
 }

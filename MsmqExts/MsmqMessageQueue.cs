@@ -58,7 +58,7 @@ namespace MsmqExts
             try
             {
                 var message = transaction.Receive(Queue, Settings.ReceiveTimeout);
-                var messageBody = message.BodyStream.ReadFromJson(message.Label);
+                var messageBody = message.BodyStream.ReadFromJson(message.Label, Settings.JsonSerializerSettings);
 
                 result = new MsmqFetchedMessage(transaction, message.Label, messageBody, DequeueResultStatus.Success, null);
             }
@@ -115,11 +115,11 @@ namespace MsmqExts
                 try
                 {
                     IFetchedMessage msg = Dequeue(cancellationToken);
-                    result.NumberOfDequeuedMessages++;
 
                     if (msg.DequeueResultStatus == DequeueResultStatus.Success)
                     {
                         successMessages.Add(msg);
+                        result.NumberOfDequeuedMessages++;
                     }
                     else if (msg.DequeueResultStatus == DequeueResultStatus.Timeout)
                     {
@@ -145,7 +145,8 @@ namespace MsmqExts
                             // and let user decide what they want to do with exception <queue message>
                             // they will have ability to ignore it, by calling commit() for some cases
 
-                            result.BadMessage = msg;
+                            result.BadMessage = msg; 
+                            result.NumberOfDequeuedMessages++;
                             break;
                         }
                     }
