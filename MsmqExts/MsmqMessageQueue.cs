@@ -226,7 +226,11 @@ namespace MsmqExts
             }
             finally
             {
-                stopwatch.Stop();
+                if (stopwatch.IsRunning)
+                {
+                    stopwatch.Stop();
+                }
+                
                 Settings?.LogEnqueueElapsedTimeAction?.Invoke(stopwatch.Elapsed);
             }
         }

@@ -23,12 +23,7 @@ namespace SimplePublisher
 
                     Parallel.For(0, batchSize, i =>
                     {
-                        var obj = new ProductMessage
-                        {
-                            Id = Guid.NewGuid(),
-                            CreatedDate = DateTime.Now,
-                            Seq = i
-                        };
+                        var obj = new ProductMessage(Guid.NewGuid(), DateTime.Now, i);
 
                         messageQueue.Enqueue(obj);
                     });
