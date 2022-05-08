@@ -12,7 +12,7 @@ namespace SimplePublisher
     {
         static void Main(string[] args)
         {
-            var batchSize = 1;
+            var batchSize = 10000;
             try
             {
                 MsmqMessageQueue messageQueue = new MsmqMessageQueue(".\\private$\\hungvo-hello");
