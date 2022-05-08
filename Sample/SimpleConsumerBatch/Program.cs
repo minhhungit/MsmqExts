@@ -12,7 +12,11 @@ namespace SimpleConsumerBatch
     {
         static MsmqMessageQueue _messageQueue = new MsmqMessageQueue(".\\private$\\hungvo-hello",
             new MsmqMessageQueueSettings {
-                ReceiveTimeout = TimeSpan.FromSeconds(1)
+                ReceiveTimeout = TimeSpan.FromSeconds(1),
+                LogDequeueElapsedTimeAction = (t) =>
+                {
+                    //Console.WriteLine($"picking message took {t.TotalMilliseconds}ms");
+                }
             });
 
         static List<ProductMessage> _fakeDatabase = new List<ProductMessage>();
@@ -21,6 +25,14 @@ namespace SimpleConsumerBatch
 
         static void Main(string[] args)
         {
+            // press ctrl + C to cancel
+            Console.CancelKeyPress += (sender, eventArgs) =>
+            {
+                Console.WriteLine("Cancel event triggered");
+                _tokenSource.Cancel();
+                eventArgs.Cancel = true;
+            };
+
             Console.WriteLine("Starting...");
 
             // there settings should be in  app settings
@@ -118,12 +130,17 @@ namespace SimpleConsumerBatch
                     Console.WriteLine($"Message has no handler, consumer will be stopped, please review your code, message label is [{noHandlerMessage.Label}]");
                     break;
                 }
+                catch (OperationCanceledException)
+                {
+                    Console.WriteLine($"Consusmer is cancelled.");
+                    break;
+                }
                 catch(Exception ex)
                 {
                     if (byPassIfError)
                     {
                         // commit good messages
-                        foreach (var msg in batchDequeueResult.GoodMessages)
+                        foreach (var msg in batchDequeueResult?.GoodMessages ?? new List<IFetchedMessage>())
                         {
                             try
                             {
@@ -136,8 +153,8 @@ namespace SimpleConsumerBatch
                         // commit bad messages
                         try
                         {
-                            batchDequeueResult.BadMessage?.CommitTransaction();
-                            batchDequeueResult.BadMessage?.Dispose();
+                            batchDequeueResult?.BadMessage?.CommitTransaction();
+                            batchDequeueResult?.BadMessage?.Dispose();
                         }
                         catch { }
 
@@ -145,7 +162,7 @@ namespace SimpleConsumerBatch
                     }
                     else
                     {
-                        foreach (var msg in batchDequeueResult.GoodMessages)
+                        foreach (var msg in batchDequeueResult?.GoodMessages ?? new List<IFetchedMessage>())
                         {
                             try
                             {
@@ -157,8 +174,8 @@ namespace SimpleConsumerBatch
 
                         try
                         {
-                            batchDequeueResult.BadMessage?.AbortTransaction();
-                            batchDequeueResult.BadMessage?.Dispose();
+                            batchDequeueResult?.BadMessage?.AbortTransaction();
+                            batchDequeueResult?.BadMessage?.Dispose();
                         }
                         catch { }
 

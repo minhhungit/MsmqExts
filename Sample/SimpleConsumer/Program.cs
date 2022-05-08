@@ -7,17 +7,25 @@ namespace SimpleConsumer
 {
     class Program
     {
+        static CancellationTokenSource _tokenSource = new CancellationTokenSource();
+        static CancellationToken _token = _tokenSource.Token;
+
         static void Main(string[] args)
         {
+            // press ctrl + C to cancel
+            Console.CancelKeyPress += (sender, eventArgs) =>
+            {
+                Console.WriteLine("Cancel event triggered");
+                _tokenSource.Cancel();
+                eventArgs.Cancel = true;
+            };
+
             var msmqMessageQueue = new MsmqMessageQueue(".\\private$\\hungvo-hello");
 
             bool byPassIfError = true;
             bool ignoreMessageIfHasNoHandler = false;
 
             Console.WriteLine("fetching, please wait...");
-
-            CancellationTokenSource tokenSource = new CancellationTokenSource();
-            CancellationToken token = tokenSource.Token;
 
             while (true)
             {
@@ -26,7 +34,7 @@ namespace SimpleConsumer
 
                 try
                 {
-                    message = msmqMessageQueue.Dequeue(token);
+                    message = msmqMessageQueue.Dequeue(_token);
                     messageLabel = message.Label;
 
                     switch (message.DequeueResultStatus)
@@ -71,6 +79,11 @@ namespace SimpleConsumer
 
                         break;
                     }
+                }
+                catch (OperationCanceledException)
+                {
+                    Console.WriteLine($"Consusmer is cancelled.");
+                    break;
                 }
                 catch (Exception ex)
                 {

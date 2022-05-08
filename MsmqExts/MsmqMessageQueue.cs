@@ -84,7 +84,11 @@ namespace MsmqExts
             }
             finally
             {
-                stopwatch.Stop();
+                if (stopwatch.IsRunning)
+                {
+                    stopwatch.Stop();
+                }
+                
                 Settings?.LogDequeueElapsedTimeAction?.Invoke(stopwatch.Elapsed);
             }
 
