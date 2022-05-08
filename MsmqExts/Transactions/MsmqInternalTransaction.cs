@@ -37,7 +37,7 @@ namespace MsmqExts
             else
             {
                 throw new Exception("MSMQ Queue must be transaction");
-            }     
+            }
         }
 
         /// <summary>
@@ -45,7 +45,10 @@ namespace MsmqExts
         /// </summary>
         public void Commit()
         {
-            _transaction.Commit();
+            if (_transaction.Status == MessageQueueTransactionStatus.Pending)
+            {
+                _transaction.Commit();
+            }
         }
 
         /// <summary>
@@ -53,7 +56,10 @@ namespace MsmqExts
         /// </summary>
         public void Abort()
         {
-            _transaction.Abort();
+            if (_transaction.Status == MessageQueueTransactionStatus.Pending)
+            {
+                _transaction.Abort();
+            }
         }
     }
 }

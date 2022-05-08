@@ -51,12 +51,12 @@ namespace MsmqExts
             cancellationToken.ThrowIfCancellationRequested();
 
             Stopwatch stopwatch = Stopwatch.StartNew();
-            IMsmqTransaction transaction = null;
             MsmqFetchedMessage result = null;
+
+            IMsmqTransaction transaction = CreateTransaction();
 
             try
             {
-                transaction = CreateTransaction();
                 var message = transaction.Receive(Queue, Settings.ReceiveTimeout);
                 var messageBody = message.BodyStream.ReadFromJson(message.Label);
 
@@ -104,19 +104,18 @@ namespace MsmqExts
             var result = new DequeueBatchResult();
 
             var successMessages = new List<IFetchedMessage>();
-            var counter = 0;
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            while (counter < batchSize)
+            while (result.NumberOfDequeuedMessages < batchSize)
             {
                 try
                 {
                     IFetchedMessage msg = Dequeue(cancellationToken);
+                    result.NumberOfDequeuedMessages++;
 
                     if (msg.DequeueResultStatus == DequeueResultStatus.Success)
                     {
                         successMessages.Add(msg);
-                        counter++;
                     }
                     else if (msg.DequeueResultStatus == DequeueResultStatus.Timeout)
                     {
@@ -153,9 +152,12 @@ namespace MsmqExts
                 }
                 catch (Exception ex)
                 {
-                    stopwatch.Stop();
+                    if (stopwatch.IsRunning)
+                    {
+                        stopwatch.Stop();
+                    }
+
                     result.DequeueElapsed = stopwatch.Elapsed;
-                    result.NumberOfDequeuedMessages = counter;
 
                     foreach (var msg in successMessages)
                     {
@@ -165,7 +167,7 @@ namespace MsmqExts
 
                     // if has un-expected exception reset all data
                     successMessages = new List<IFetchedMessage>();
-                    Settings?.LogDequeueBatchElapsedTime?.Invoke(stopwatch.Elapsed, counter, batchSize);
+                    Settings?.LogDequeueBatchElapsedTime?.Invoke(stopwatch.Elapsed, result.NumberOfDequeuedMessages, batchSize);
 
                     throw ex;
                 }
@@ -179,9 +181,8 @@ namespace MsmqExts
             }
 
             result.DequeueElapsed = stopwatch.Elapsed;
-            result.NumberOfDequeuedMessages = counter;
 
-            Settings?.LogDequeueBatchElapsedTime?.Invoke(stopwatch.Elapsed, counter, batchSize);
+            Settings?.LogDequeueBatchElapsedTime?.Invoke(stopwatch.Elapsed, result.NumberOfDequeuedMessages, batchSize);
 
             return result;
         }
