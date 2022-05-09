@@ -43,14 +43,14 @@ Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.04ms per message
 ## Demo
 ### Simple Publisher
 ```csharp
-var _messageQueue = new MsmqMessageQueue();
+var messageQueue = new MsmqMessageQueue(".\\private$\\hungvo-hello");
 var obj = new Product
 {
     Id = 1,
     Name = @"Jin"
 };
 
-_messageQueue.Enqueue("my-queue", obj);
+messageQueue.Enqueue(obj);
 ```
 
 ### Simple Consumer
@@ -58,24 +58,21 @@ _messageQueue.Enqueue("my-queue", obj);
 CancellationTokenSource tokenSource = new CancellationTokenSource();
 CancellationToken token = tokenSource.Token;
 
-var _messageQueue = new MsmqMessageQueue();
+var msmqMessageQueue = new MsmqMessageQueue(".\\private$\\hungvo-hello");
 
-using(var deObj = _messageQueue.Dequeue("my-queue", token))
+try
 {
-    try
+    var message = _messageQueue.Dequeue(token);
+    if (message.Result is Product prod)
     {
-        if (deObj.Result is Product prod)
-        {
-            Console.WriteLine($"- processing product <{prod.Id}>");
-        }
-        deObj.Commit();
+        Console.WriteLine($"- processing product <{prod.Id}>");
     }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error: {ex.Message}");
-    
-        deObj.Abort();
-    }
+    message.Commit();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Error: {ex.Message}");
+    message.Abort();
 }
 ```
 
