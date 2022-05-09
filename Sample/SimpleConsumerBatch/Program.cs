@@ -37,7 +37,7 @@ namespace SimpleConsumerBatch
 
             // there settings should be in  app settings
             bool byPassIfError = false;
-            int batchSize = 1000;
+            int batchSize = 10000;
             TimeSpan outOfMessageDelayTime = TimeSpan.FromSeconds(10);
 
             Task.Run(() =>
@@ -101,11 +101,8 @@ namespace SimpleConsumerBatch
                     // or deleting it by manual
                     if (hasNoHandlerMessage)
                     {
-                        foreach (var msg in batchDequeueResult.GoodMessages)
-                        {
-                            msg.AbortTransaction();
-                            msg.Dispose();
-                        }
+                        batchDequeueResult.Transaction.Abort();
+                        batchDequeueResult.Transaction.Dispose();
 
                         throw new MsmqMessageHasNoHandlerException();
                     }
@@ -118,11 +115,8 @@ namespace SimpleConsumerBatch
                         }
 
                         // after inserting, we will commit messages
-                        foreach (var msg in batchDequeueResult.GoodMessages)
-                        {
-                            msg.CommitTransaction();
-                            msg.Dispose();
-                        }
+                        batchDequeueResult.Transaction.Commit();
+                        batchDequeueResult.Transaction.Dispose();
                     }
                 }
                 catch (MsmqMessageHasNoHandlerException)
@@ -139,22 +133,10 @@ namespace SimpleConsumerBatch
                 {
                     if (byPassIfError)
                     {
-                        // commit good messages
-                        foreach (var msg in batchDequeueResult?.GoodMessages ?? new List<IFetchedMessage>())
-                        {
-                            try
-                            {
-                                msg.CommitTransaction();
-                                msg.Dispose();
-                            }
-                            catch { }
-                        }
-
-                        // commit bad messages
                         try
                         {
-                            batchDequeueResult?.BadMessage?.CommitTransaction();
-                            batchDequeueResult?.BadMessage?.Dispose();
+                            batchDequeueResult?.Transaction?.Commit();
+                            batchDequeueResult?.Transaction?.Dispose();
                         }
                         catch { }
 
@@ -162,20 +144,10 @@ namespace SimpleConsumerBatch
                     }
                     else
                     {
-                        foreach (var msg in batchDequeueResult?.GoodMessages ?? new List<IFetchedMessage>())
-                        {
-                            try
-                            {
-                                msg.AbortTransaction();
-                                msg.Dispose();
-                            }
-                            catch { }
-                        }
-
                         try
                         {
-                            batchDequeueResult?.BadMessage?.AbortTransaction();
-                            batchDequeueResult?.BadMessage?.Dispose();
+                            batchDequeueResult?.Transaction?.Abort();
+                            batchDequeueResult?.Transaction?.Dispose();
                         }
                         catch { }
 

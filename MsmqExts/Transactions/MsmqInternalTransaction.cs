@@ -31,7 +31,11 @@ namespace MsmqExts
         {
             if (queue.Transactional)
             {
-                _transaction.Begin();
+                if (_transaction.Status == MessageQueueTransactionStatus.Initialized)
+                {
+                    _transaction.Begin();
+                }
+                
                 return queue.Receive(timeout, _transaction);
             }
             else

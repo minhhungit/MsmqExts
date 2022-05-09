@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using SimpleMessage;
 using System;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace SimplePublisher
@@ -12,7 +11,7 @@ namespace SimplePublisher
     {
         static void Main(string[] args)
         {
-            var batchSize = 10000;
+            var batchSize = 1;
             try
             {
                 MsmqMessageQueue messageQueue = new MsmqMessageQueue(".\\private$\\hungvo-hello");
@@ -24,13 +23,12 @@ namespace SimplePublisher
                     Parallel.For(0, batchSize, i =>
                     {
                         var obj = new ProductMessage(Guid.NewGuid(), DateTime.Now, i);
-
                         messageQueue.Enqueue(obj);
                     });
 
                     sw.Stop();
 
-                    Console.WriteLine($"Sent {batchSize} in {sw.Elapsed.TotalMilliseconds}ms, avg {Math.Round(sw.Elapsed.TotalMilliseconds / batchSize, 2)}ms per message");
+                    Console.WriteLine($"Enqueued {batchSize} message(s) in {sw.Elapsed.TotalMilliseconds}ms, avg {Math.Round(sw.Elapsed.TotalMilliseconds / batchSize, 2)}ms per message");
                 }
             }
             catch (Exception ex)

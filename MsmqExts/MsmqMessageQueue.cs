@@ -46,14 +46,23 @@ namespace MsmqExts
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public IFetchedMessage Dequeue(CancellationToken cancellationToken)
+        public IFetchedMessage Dequeue(CancellationToken cancellationToken, IMsmqTransaction msmqTransaction = null)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             Stopwatch stopwatch = Stopwatch.StartNew();
             MsmqFetchedMessage result = null;
 
-            IMsmqTransaction transaction = CreateTransaction();
+            IMsmqTransaction transaction;
+
+            if (msmqTransaction == null)
+            {
+                transaction = CreateTransaction();
+            }
+            else
+            {
+                transaction = msmqTransaction;
+            }
 
             try
             {
@@ -65,8 +74,11 @@ namespace MsmqExts
             catch (MessageQueueException ex) when (ex.MessageQueueErrorCode == MessageQueueErrorCode.IOTimeout)
             {
                 // we abort transaction here because timeout is not big problem, just retry later, user no need to do anything
-                transaction.Abort();
-                transaction.Dispose();
+                if (msmqTransaction == null)
+                {
+                    transaction.Abort();
+                    transaction.Dispose();
+                }                
 
                 result = new MsmqFetchedMessage(null, null, null, DequeueResultStatus.Timeout, ex);
             }
@@ -105,16 +117,17 @@ namespace MsmqExts
         /// <returns></returns>
         public DequeueBatchResult DequeueBatch(int batchSize, CancellationToken cancellationToken)
         {
-            var result = new DequeueBatchResult();
-
+            IMsmqTransaction transaction = CreateTransaction();
+            var result = new DequeueBatchResult(transaction);
             var successMessages = new List<IFetchedMessage>();
-            Stopwatch stopwatch = Stopwatch.StartNew();
 
+            Stopwatch stopwatch = Stopwatch.StartNew();
+                 
             while (result.NumberOfDequeuedMessages < batchSize)
             {
                 try
                 {
-                    IFetchedMessage msg = Dequeue(cancellationToken);
+                    IFetchedMessage msg = Dequeue(cancellationToken, transaction);
 
                     if (msg.DequeueResultStatus == DequeueResultStatus.Success)
                     {
@@ -145,7 +158,7 @@ namespace MsmqExts
                             // and let user decide what they want to do with exception <queue message>
                             // they will have ability to ignore it, by calling commit() for some cases
 
-                            result.BadMessage = msg; 
+                            result.BadMessage = msg;
                             result.NumberOfDequeuedMessages++;
                             break;
                         }
@@ -244,6 +257,68 @@ namespace MsmqExts
         public void Enqueue<T>(T obj)
         {
             Enqueue(obj.GetType().AssemblyQualifiedName, obj);
+        }
+
+        public void EnqueueBatch<T>(IEnumerable<T> objs, Func<T, string> labelFactory = null)
+        {
+            long batchSize = objs == null ? 0 : objs.LongCount();
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            try
+            {
+                var transaction = new MessageQueueTransaction();
+                foreach (var obj in objs ?? new List<T>())
+                {
+                    var label = string.Empty;
+                    if (labelFactory != null)
+                    {
+                        label = labelFactory?.Invoke(obj);
+                    }
+                    else
+                    {
+                        label = obj.GetType().AssemblyQualifiedName;
+                    }
+
+                    if (transaction.Status == MessageQueueTransactionStatus.Initialized)
+                    {
+                        transaction.Begin();
+                    }
+                    
+                    using (MemoryStream messageMemory = new MemoryStream(Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(obj))))
+                    {
+                        using (var message = new Message
+                        {
+                            BodyStream = messageMemory,
+                            Label = label,
+                            Recoverable = true,
+                            UseDeadLetterQueue = true,
+                        })
+                        {
+                            Queue.Send(message, transaction);
+                        }
+                    }
+                }
+
+                if (transaction.Status == MessageQueueTransactionStatus.Pending)
+                {
+                    transaction.Commit();
+                }
+            }
+            catch (Exception ex)
+            {
+                Settings?.LogExceptioAction?.Invoke(ex);
+                throw ex;
+            }
+            finally
+            {
+                if (stopwatch.IsRunning)
+                {
+                    stopwatch.Stop();
+                }
+
+                Settings?.LogEnqueueElapsedTimeAction?.Invoke(stopwatch.Elapsed);
+            }
         }
 
         private IMsmqTransaction CreateTransaction()
