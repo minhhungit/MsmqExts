@@ -10,7 +10,7 @@ namespace SimplePublisherBatch
     {
         static void Main(string[] args)
         {
-            var batchSize = 10000;
+            var batchSize = 50000;
             try
             {
                 MsmqMessageQueue messageQueue = new MsmqMessageQueue(".\\private$\\hungvo-hello");
@@ -18,13 +18,6 @@ namespace SimplePublisherBatch
                 while (true)
                 {
                     Stopwatch sw = Stopwatch.StartNew();
-
-                    //Parallel.For(0, batchSize, i =>
-                    //{
-                    //    var obj = new ProductMessage(Guid.NewGuid(), DateTime.Now, i);
-
-                    //    messageQueue.Enqueue(obj);
-                    //});
 
                     var objs = Enumerable.Range(0, batchSize).Select(seq =>
                     {

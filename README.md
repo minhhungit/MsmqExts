@@ -6,6 +6,36 @@ MSMQ (Microsoft Message Queuing) helper library
 Install-Package MsmqExts
 ```
 
+### Performance
+
+## Single en-queue
+Enqueued a message in 0.45ms
+Enqueued a message in 0.80ms
+Enqueued a message in 0.66ms
+Enqueued a message in 0.54ms
+Enqueued a message in 0.46ms
+
+## Single de-queue
+Dequeue a message in 0.11ms
+Dequeue a message in 0.15ms
+Dequeue a message in 0.11ms
+Dequeue a message in 0.11ms
+Dequeue a message in 0.11ms
+
+##Batch en-queue##
+Enqueued a batch 50000 message(s) in 2454.79ms, avg 0.05ms per message
+Enqueued a batch 50000 message(s) in 1986.63ms, avg 0.04ms per message
+Enqueued a batch 50000 message(s) in 1990.47ms, avg 0.04ms per message
+Enqueued a batch 50000 message(s) in 2067.62ms, avg 0.04ms per message
+Enqueued a batch 50000 message(s) in 2147.41ms, avg 0.04ms per message
+
+##Batch de-queue##
+Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.05ms per message
+Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.07ms per message
+Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.04ms per message
+Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.04ms per message
+Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.04ms per message
+
 ### Simple Publisher
 ```csharp
 var _messageQueue = new MsmqMessageQueue();
@@ -44,9 +74,12 @@ using(var deObj = _messageQueue.Dequeue("my-queue", token))
 }
 ```
 
+> [Check more samples here](https://github.com/minhhungit/MsmqExts/tree/main/Sample)
+
 ### Feature:
 - Transaction
-- Fetch batch messages
+- Batch enqueue/dequeue messages
+- Message persistence in mind
 
 ### How to run sample: 
 
