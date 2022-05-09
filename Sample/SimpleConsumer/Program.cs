@@ -22,7 +22,7 @@ namespace SimpleConsumer
 
             var msmqMessageQueue = new MsmqMessageQueue(".\\private$\\hungvo-hello");
 
-            bool byPassIfError = true;
+            bool byPassIfError = false;
             bool ignoreMessageIfHasNoHandler = false;
             TimeSpan outOfMessageDelayTime = TimeSpan.FromSeconds(10);
 

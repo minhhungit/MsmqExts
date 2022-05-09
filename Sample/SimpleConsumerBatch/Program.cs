@@ -36,7 +36,7 @@ namespace SimpleConsumerBatch
             Console.WriteLine("Starting...");
 
             // there settings should be in  app settings
-            bool byPassIfError = true;
+            bool byPassIfError = false;
             int batchSize = 1000;
             TimeSpan outOfMessageDelayTime = TimeSpan.FromSeconds(10);
 
