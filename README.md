@@ -8,7 +8,7 @@ Install-Package MsmqExts
 
 ### Performance
 
-## Single message en-queue ##
+#### Single message en-queue ####
 ```
 Enqueued a message in 0.45ms
 Enqueued a message in 0.80ms
@@ -16,7 +16,7 @@ Enqueued a message in 0.66ms
 Enqueued a message in 0.54ms
 Enqueued a message in 0.46ms
 ```
-## Single message de-queue ##
+#### Single message de-queue ####
 ```
 Dequeue a message in 0.11ms
 Dequeue a message in 0.15ms
@@ -24,7 +24,7 @@ Dequeue a message in 0.11ms
 Dequeue a message in 0.11ms
 Dequeue a message in 0.11ms
 ```
-## Batch messages en-queue ##
+#### Batch messages en-queue ####
 ```
 Enqueued a batch 50000 message(s) in 2454.79ms, avg 0.05ms per message
 Enqueued a batch 50000 message(s) in 1986.63ms, avg 0.04ms per message
@@ -32,7 +32,7 @@ Enqueued a batch 50000 message(s) in 1990.47ms, avg 0.04ms per message
 Enqueued a batch 50000 message(s) in 2067.62ms, avg 0.04ms per message
 Enqueued a batch 50000 message(s) in 2147.41ms, avg 0.04ms per message
 ```
-## Batch messages de-queue ##
+#### Batch messages de-queue ####
 ```
 Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.05ms per message
 Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.07ms per message
@@ -43,14 +43,14 @@ Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.04ms per message
 ## Demo
 ### Simple Publisher
 ```csharp
-var _messageQueue = new MsmqMessageQueue();
+var messageQueue = new MsmqMessageQueue(".\\private$\\hungvo-hello");
 var obj = new Product
 {
     Id = 1,
     Name = @"Jin"
 };
 
-_messageQueue.Enqueue("my-queue", obj);
+messageQueue.Enqueue(obj);
 ```
 
 ### Simple Consumer
@@ -58,24 +58,21 @@ _messageQueue.Enqueue("my-queue", obj);
 CancellationTokenSource tokenSource = new CancellationTokenSource();
 CancellationToken token = tokenSource.Token;
 
-var _messageQueue = new MsmqMessageQueue();
+var msmqMessageQueue = new MsmqMessageQueue(".\\private$\\hungvo-hello");
 
-using(var deObj = _messageQueue.Dequeue("my-queue", token))
+try
 {
-    try
+    var message = _messageQueue.Dequeue(token);
+    if (message.Result is Product prod)
     {
-        if (deObj.Result is Product prod)
-        {
-            Console.WriteLine($"- processing product <{prod.Id}>");
-        }
-        deObj.Commit();
+        Console.WriteLine($"- processing product <{prod.Id}>");
     }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error: {ex.Message}");
-    
-        deObj.Abort();
-    }
+    message.Commit();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Error: {ex.Message}");
+    message.Abort();
 }
 ```
 
