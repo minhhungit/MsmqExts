@@ -7,35 +7,38 @@ Install-Package MsmqExts
 ```
 
 ### Performance
+>Note: this test is on latest release candidate versions
 
-#### Single message en-queue ####
+#### Single message producer ####
 ```
-Enqueued a message in 0.45ms
-Enqueued a message in 0.80ms
-Enqueued a message in 0.66ms
-Enqueued a message in 0.54ms
-Enqueued a message in 0.46ms
+Enqueued 1 message in 0.26ms
+Enqueued 1 message in 0.26ms
+Enqueued 1 message in 0.27ms
+Enqueued 1 message in 0.28ms
+Enqueued 1 message in 0.29ms
+Enqueued 1 message in 0.27ms
 ```
-#### Single message de-queue ####
+#### Single message consumer ####
 ```
-Dequeue a message in 0.11ms
-Dequeue a message in 0.15ms
-Dequeue a message in 0.11ms
-Dequeue a message in 0.11ms
-Dequeue a message in 0.11ms
+Got a product in 0.12ms | [<11806 / 998a6e0> - 21:12:12.710]
+Got a product in 0.18ms | [<11807 / a0e25a3> - 21:12:12.710]
+Got a product in 0.14ms | [<11808 / fc7c5e0> - 21:12:12.710]
+Got a product in 0.15ms | [<11809 / 23bd871> - 21:12:12.710]
+Got a product in 0.12ms | [<11810 / 5e8cb24> - 21:12:12.710]
+Got a product in 0.14ms | [<11811 / 99d2df1> - 21:12:12.710]
 ```
-#### Batch messages en-queue ####
+#### Batch messages producer ####
 ```
-Enqueued a batch 50000 message(s) in 2454.79ms, avg 0.05ms per message
-Enqueued a batch 50000 message(s) in 1986.63ms, avg 0.04ms per message
-Enqueued a batch 50000 message(s) in 1990.47ms, avg 0.04ms per message
-Enqueued a batch 50000 message(s) in 2067.62ms, avg 0.04ms per message
-Enqueued a batch 50000 message(s) in 2147.41ms, avg 0.04ms per message
+Enqueued a batch 50000 message(s) in 1853.38ms, avg 0.04ms per message
+Enqueued a batch 50000 message(s) in 1750.66ms, avg 0.04ms per message
+Enqueued a batch 50000 message(s) in 1796.26ms, avg 0.04ms per message
+Enqueued a batch 50000 message(s) in 1927.82ms, avg 0.04ms per message
+Enqueued a batch 50000 message(s) in 1916.92ms, avg 0.04ms per message
 ```
-#### Batch messages de-queue ####
+#### Batch messages consumer ####
 ```
-Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.05ms per message
-Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.07ms per message
+Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.04ms per message
+Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.04ms per message
 Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.04ms per message
 Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.04ms per message
 Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.04ms per message
