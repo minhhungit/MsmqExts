@@ -27,7 +27,6 @@ namespace MsmqExts
         /// </summary>
         public TimeSpan ReceiveTimeout { get; set; } = TimeSpan.FromSeconds(2);
         public JsonSerializerSettings JsonSerializerSettings { get; set; }
-        public Action<Exception> LogExceptioAction { get; set; }
         public Action<TimeSpan> LogEnqueueElapsedTimeAction { get; set; }
         public Action<TimeSpan> LogDequeueElapsedTimeAction { get; set; }
 

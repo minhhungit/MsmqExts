@@ -9,6 +9,7 @@ namespace MsmqExts
 {
     public interface IMsmqTransaction : IDisposable
     {
+        MessageQueueTransaction MessageQueueTransaction { get; }
         Message Receive(MessageQueue queue, TimeSpan timeout);
 
         void Commit();

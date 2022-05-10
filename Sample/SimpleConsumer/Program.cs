@@ -44,7 +44,7 @@ namespace SimpleConsumer
                             if (message.Result is ProductMessage prod)
                             {
                                 var shortId = prod.Id.ToString().Substring(0, 7);
-                                Console.WriteLine($"- got product in {Math.Round(message.DequeueElapsed.TotalMilliseconds, 2)}ms | [<{prod.Seq} / {shortId}> - {prod.CreatedDate.ToString("HH:mm:ss.fff")}]");
+                                Console.WriteLine($"Got a product in {Math.Round(message.DequeueElapsed.TotalMilliseconds, 2)}ms | [<{prod.Seq} / {shortId}> - {prod.CreatedDate.ToString("HH:mm:ss.fff")}]");
 
                                 message?.CommitTransaction();
                                 message?.Dispose();

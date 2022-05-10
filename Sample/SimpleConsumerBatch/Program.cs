@@ -66,11 +66,11 @@ namespace SimpleConsumerBatch
 
                     if (batchDequeueResult.NumberOfDequeuedMessages > 0)
                     {
-                        Console.WriteLine($"tried to fetch a batch {batchSize} messages, got {batchDequeueResult.NumberOfDequeuedMessages}/{batchSize}, avg {Math.Round(batchDequeueResult.DequeueElapsed.TotalMilliseconds / batchDequeueResult.NumberOfDequeuedMessages, 2)}ms per message");
+                        Console.WriteLine($"Tried to fetch a batch {batchSize} messages, got {batchDequeueResult.NumberOfDequeuedMessages}/{batchSize}, avg {Math.Round(batchDequeueResult.DequeueElapsed.TotalMilliseconds / batchDequeueResult.NumberOfDequeuedMessages, 2)}ms per message");
                     }
                     else
                     {
-                        Console.WriteLine($"no more message in queue or timeout, will delay in {outOfMessageDelayTime.TotalSeconds} seconds to next fetching");
+                        Console.WriteLine($"No more message in queue or timeout, will delay in {outOfMessageDelayTime.TotalSeconds} seconds to next fetching");
                         Thread.Sleep(outOfMessageDelayTime);
                         continue;
                     }
@@ -79,7 +79,7 @@ namespace SimpleConsumerBatch
                     var tempProducts = new List<ProductMessage>();
 
                     // parsing
-                    foreach (var msg in batchDequeueResult.GoodMessages)
+                    foreach (var msg in batchDequeueResult.Messages)
                     {
                         if (hasNoHandlerMessage == false)
                         {

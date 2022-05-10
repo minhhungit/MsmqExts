@@ -20,11 +20,14 @@ namespace SimplePublisher
                 {
                     Stopwatch sw = Stopwatch.StartNew();
 
-                    Parallel.For(0, batchSize, i =>
-                    {
-                        var obj = new ProductMessage(Guid.NewGuid(), DateTime.Now, i);
-                        messageQueue.Enqueue(obj);
-                    });
+                    var obj = new ProductMessage(Guid.NewGuid(), DateTime.Now, 0);
+                    messageQueue.Enqueue(obj);
+
+                    //Parallel.For(0, batchSize, i =>
+                    //{
+                    //    var obj = new ProductMessage(Guid.NewGuid(), DateTime.Now, i);
+                    //    messageQueue.Enqueue(obj);
+                    //});
 
                     sw.Stop();
 

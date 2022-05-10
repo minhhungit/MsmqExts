@@ -9,16 +9,16 @@ namespace MsmqExts
 {
     public class MsmqInternalTransaction : IMsmqTransaction
     {
-        private readonly MessageQueueTransaction _transaction;
+        public MessageQueueTransaction MessageQueueTransaction { get; }
 
         public MsmqInternalTransaction()
         {
-            _transaction = new MessageQueueTransaction();
+            MessageQueueTransaction = new MessageQueueTransaction();
         }
 
         public void Dispose()
         {
-            _transaction.Dispose();
+            MessageQueueTransaction.Dispose();
         }
 
         /// <summary>
@@ -31,12 +31,12 @@ namespace MsmqExts
         {
             if (queue.Transactional)
             {
-                if (_transaction.Status == MessageQueueTransactionStatus.Initialized)
+                if (MessageQueueTransaction.Status == MessageQueueTransactionStatus.Initialized)
                 {
-                    _transaction.Begin();
+                    MessageQueueTransaction.Begin();
                 }
                 
-                return queue.Receive(timeout, _transaction);
+                return queue.Receive(timeout, MessageQueueTransaction);
             }
             else
             {
@@ -49,9 +49,9 @@ namespace MsmqExts
         /// </summary>
         public void Commit()
         {
-            if (_transaction.Status == MessageQueueTransactionStatus.Pending)
+            if (MessageQueueTransaction.Status == MessageQueueTransactionStatus.Pending)
             {
-                _transaction.Commit();
+                MessageQueueTransaction.Commit();
             }
         }
 
@@ -60,9 +60,9 @@ namespace MsmqExts
         /// </summary>
         public void Abort()
         {
-            if (_transaction.Status == MessageQueueTransactionStatus.Pending)
+            if (MessageQueueTransaction.Status == MessageQueueTransactionStatus.Pending)
             {
-                _transaction.Abort();
+                MessageQueueTransaction.Abort();
             }
         }
     }

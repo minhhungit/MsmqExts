@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32421.90
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{F0C92577-339A-43D9-A168-A020D2C64F3C}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{F0C92577-339A-43D9-A168-A020D2C64F3C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MsmqExts", "MsmqExts\MsmqExts.csproj", "{E611A844-B575-4606-85AB-1DE47FDD6591}"
 EndProject
@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleConsumerBatch", "Samp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplePublisherBatch", "Sample\SimplePublisherBatch\SimplePublisherBatch.csproj", "{D049E627-65B5-4E13-B64A-1C2F5C5DCFC9}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_", "_", "{590057E5-D307-45C6-8FCA-C5FCDCDE4D7F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "_Solution Items", "{590057E5-D307-45C6-8FCA-C5FCDCDE4D7F}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
 	EndProjectSection

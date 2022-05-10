@@ -36,6 +36,23 @@ namespace MsmqExts
             }
         }
 
+        public MsmqMessageQueue(Func<MessageQueue> queueFactory, MsmqMessageQueueSettings settings)
+        {
+            if (queueFactory == null)
+            {
+                throw new ArgumentNullException(nameof(queueFactory));  
+            }
+
+            Queue = queueFactory?.Invoke();
+
+            Settings = settings ?? new MsmqMessageQueueSettings();
+
+            if (Settings.ReceiveTimeout == null)
+            {
+                Settings.ReceiveTimeout = TimeSpan.FromSeconds(2);
+            }
+        }
+
         public bool IsMatchType<T>(object obj) where T : class
         {
             return typeof(T) == obj.GetType();
@@ -63,17 +80,19 @@ namespace MsmqExts
             {
                 transaction = msmqTransaction;
             }
-
+            
             try
             {
                 var message = transaction.Receive(Queue, Settings.ReceiveTimeout);
                 var messageBody = message.BodyStream.ReadFromJson(message.Label, Settings.JsonSerializerSettings);
-
+                                
                 result = new MsmqFetchedMessage(transaction, message.Label, messageBody, DequeueResultStatus.Success, null);
             }
             catch (MessageQueueException ex) when (ex.MessageQueueErrorCode == MessageQueueErrorCode.IOTimeout)
             {
                 // we abort transaction here because timeout is not big problem, just retry later, user no need to do anything
+                // but only abort transaction if transaction is created by single receive
+                // for batch receive (msmqTransaction != null) we won't abort
                 if (msmqTransaction == null)
                 {
                     transaction.Abort();
@@ -84,14 +103,6 @@ namespace MsmqExts
             }
             catch(Exception ex)
             {
-                // NOTE: we won't abort transaction here, we will let user decide what they want to do with error
-                // this allow them abiliby ignoring error message by calling commit() for some cases
-
-                //transaction.Abort();      // DON'T UN-COMMENT OUT THIS LINE
-                //transaction.Dispose();    // DON'T UN-COMMENT OUT THIS LINE
-
-                Settings?.LogExceptioAction?.Invoke(ex);
-
                 result = new MsmqFetchedMessage(transaction, null, null, DequeueResultStatus.Exception, ex);
             }
             finally
@@ -117,89 +128,85 @@ namespace MsmqExts
         /// <returns></returns>
         public DequeueBatchResult DequeueBatch(int batchSize, CancellationToken cancellationToken)
         {
-            IMsmqTransaction transaction = CreateTransaction();
-            var result = new DequeueBatchResult(transaction);
-            var successMessages = new List<IFetchedMessage>();
-
+            IMsmqTransaction sharedTransaction = CreateTransaction();
+            var result = new DequeueBatchResult(sharedTransaction);
             Stopwatch stopwatch = Stopwatch.StartNew();
-                 
-            while (result.NumberOfDequeuedMessages < batchSize)
+
+            for (int i = 0; i < batchSize; i++)
             {
                 try
                 {
-                    IFetchedMessage msg = Dequeue(cancellationToken, transaction);
-
-                    if (msg.DequeueResultStatus == DequeueResultStatus.Success)
+                    IFetchedMessage msg = Dequeue(cancellationToken, sharedTransaction);
+                    if (msg != null)
                     {
-                        successMessages.Add(msg);
-                        result.NumberOfDequeuedMessages++;
-                    }
-                    else if (msg.DequeueResultStatus == DequeueResultStatus.Timeout)
-                    {
-                        // we won't throw exception if dequeue get timeout
-                        // here transaction was disposed before
-                        break;
-                    }
-                    else if (msg.DequeueResultStatus == DequeueResultStatus.Exception)
-                    {
-                        if (successMessages.Any())
+                        if (msg.DequeueResultStatus == DequeueResultStatus.Success)
                         {
-                            // if we have some messages that dequeued successfully, then return them
-                            // AND abort transaction for the last dequeued message (the error one)
-                            // we will throw exception for error one in next batch fetching
-                            msg?.AbortTransaction();
-                            msg.Dispose();
-
+                            result.Messages.Add(msg);
+                            result.NumberOfDequeuedMessages++;
+                        }
+                        else if (msg.DequeueResultStatus == DequeueResultStatus.Timeout)
+                        {
+                            // we won't throw exception if dequeue get timeout
+                            // here transaction was disposed before (if single receive)
                             break;
+                        }
+                        else if (msg.DequeueResultStatus == DequeueResultStatus.Exception)
+                        {
+                            if (result.NumberOfDequeuedMessages > 0)
+                            {
+                                // revert and re-fetch messages with new batchSize = NumberOf_SUCCESS_DequeuedMessages
+                                // that mean we will fetch messages that placed in before this bad exception message
+                                sharedTransaction.Abort();
+                                sharedTransaction.Dispose();
+
+                                if (stopwatch.IsRunning)
+                                {
+                                    stopwatch.Stop();
+                                }
+                                return DequeueBatch(result.NumberOfDequeuedMessages, cancellationToken);
+                            }
+                            else
+                            {
+                                result.Messages.Add(msg);
+                                result.NumberOfDequeuedMessages++;
+                                break;
+                            }
                         }
                         else
                         {
-                            // if 'error' message is the first one of batch then we will THROW exception
-                            // and let user decide what they want to do with exception <queue message>
-                            // they will have ability to ignore it, by calling commit() for some cases
-
-                            result.BadMessage = msg;
-                            result.NumberOfDequeuedMessages++;
-                            break;
+                            throw new Exception($"Un-handled case DequeueResultStatus = {msg.DequeueResultStatus}");
                         }
                     }
                     else
                     {
-                        throw new Exception("Un-handled dequeue result status");
+                        break;
                     }
                 }
                 catch (Exception ex)
                 {
+                    // we normally should have NO any exception here
+                    // for safe, we will abort transaction if have
+                    // create me an issue on github to let me know, thank you
+                    // here is github link: https://github.com/minhhungit/MsmqExts
+                    sharedTransaction.Abort();
+                    sharedTransaction.Dispose();
+
                     if (stopwatch.IsRunning)
                     {
                         stopwatch.Stop();
                     }
-
                     result.DequeueElapsed = stopwatch.Elapsed;
-
-                    foreach (var msg in successMessages)
-                    {
-                        msg.AbortTransaction();
-                        msg.Dispose();
-                    }
-
-                    // if has un-expected exception reset all data
-                    successMessages = new List<IFetchedMessage>();
                     Settings?.LogDequeueBatchElapsedTime?.Invoke(stopwatch.Elapsed, result.NumberOfDequeuedMessages, batchSize);
 
                     throw ex;
                 }
             }
-
-            result.GoodMessages = successMessages;
-
+            
             if (stopwatch.IsRunning)
             {
                 stopwatch.Stop();
             }
-
             result.DequeueElapsed = stopwatch.Elapsed;
-
             Settings?.LogDequeueBatchElapsedTime?.Invoke(stopwatch.Elapsed, result.NumberOfDequeuedMessages, batchSize);
 
             return result;
@@ -235,7 +242,6 @@ namespace MsmqExts
             }
             catch (Exception ex)
             {
-                Settings?.LogExceptioAction?.Invoke(ex);
                 throw ex;
             }
             finally
@@ -307,7 +313,6 @@ namespace MsmqExts
             }
             catch (Exception ex)
             {
-                Settings?.LogExceptioAction?.Invoke(ex);
                 throw ex;
             }
             finally

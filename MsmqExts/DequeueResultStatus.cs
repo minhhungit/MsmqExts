@@ -4,6 +4,6 @@
     {
         Success = 1,
         Timeout = 2,
-        Exception = 4
+        Exception = 4        
     }
 }
