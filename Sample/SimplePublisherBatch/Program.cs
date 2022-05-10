@@ -28,7 +28,7 @@ namespace SimplePublisherBatch
 
                     sw.Stop();
 
-                    Console.WriteLine($"Enqueued a batch {batchSize} message(s) in {sw.Elapsed.TotalMilliseconds}ms, avg {Math.Round(sw.Elapsed.TotalMilliseconds / batchSize, 2)}ms per message");
+                    Console.WriteLine($"Enqueued a batch {batchSize} message(s) in {Math.Round(sw.Elapsed.TotalMilliseconds, 2)}ms, avg {Math.Round(sw.Elapsed.TotalMilliseconds / batchSize, 2)}ms per message");
                 }
             }
             catch (Exception ex)

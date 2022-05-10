@@ -1,9 +1,7 @@
 ﻿using MsmqExts;
-using Newtonsoft.Json;
 using SimpleMessage;
 using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace SimplePublisher
 {
@@ -11,7 +9,9 @@ namespace SimplePublisher
     {
         static void Main(string[] args)
         {
-            var batchSize = 1;
+            var useParallel = true;
+            var parallelBatchSize = 10000;
+
             try
             {
                 MsmqMessageQueue messageQueue = new MsmqMessageQueue(".\\private$\\hungvo-hello");
@@ -20,18 +20,30 @@ namespace SimplePublisher
                 {
                     Stopwatch sw = Stopwatch.StartNew();
 
-                    var obj = new ProductMessage(Guid.NewGuid(), DateTime.Now, 0);
-                    messageQueue.Enqueue(obj);
-
-                    //Parallel.For(0, batchSize, i =>
-                    //{
-                    //    var obj = new ProductMessage(Guid.NewGuid(), DateTime.Now, i);
-                    //    messageQueue.Enqueue(obj);
-                    //});
+                    if (useParallel)
+                    {
+                        System.Threading.Tasks.Parallel.For(0, parallelBatchSize, i =>
+                        {
+                            var obj = new ProductMessage(Guid.NewGuid(), DateTime.Now, i);
+                            messageQueue.Enqueue(obj);
+                        });
+                    }
+                    else
+                    {
+                        var obj = new ProductMessage(Guid.NewGuid(), DateTime.Now, 0);
+                        messageQueue.Enqueue(obj);
+                    }
 
                     sw.Stop();
 
-                    Console.WriteLine($"Enqueued {batchSize} message(s) in {sw.Elapsed.TotalMilliseconds}ms, avg {Math.Round(sw.Elapsed.TotalMilliseconds / batchSize, 2)}ms per message");
+                    if (useParallel)
+                    {
+                        Console.WriteLine($"Enqueued {parallelBatchSize} messages(s) in {Math.Round(sw.Elapsed.TotalMilliseconds, 2)}ms, avg {Math.Round(sw.Elapsed.TotalMilliseconds / parallelBatchSize, 2)}ms per message");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Enqueued 1 message in {Math.Round(sw.Elapsed.TotalMilliseconds, 2)}ms");
+                    }                    
                 }
             }
             catch (Exception ex)
