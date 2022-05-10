@@ -18,6 +18,16 @@ Enqueued 1 message in 0.28ms
 Enqueued 1 message in 0.29ms
 Enqueued 1 message in 0.27ms
 ```
+
+### Single message producer using C# Parallel ###
+```
+Enqueued 10000 messages(s) in 975.02ms, avg 0.1ms per message
+Enqueued 10000 messages(s) in 877.55ms, avg 0.09ms per message
+Enqueued 10000 messages(s) in 866.62ms, avg 0.09ms per message
+Enqueued 10000 messages(s) in 928.88ms, avg 0.09ms per message
+Enqueued 10000 messages(s) in 909.85ms, avg 0.09ms per message
+```
+
 #### Single message consumer ####
 ```
 Got a product in 0.12ms | [<11806 / 998a6e0> - 21:12:12.710]
