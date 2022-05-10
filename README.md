@@ -45,13 +45,22 @@ Enqueued a batch 50000 message(s) in 1796.26ms, avg 0.04ms per message
 Enqueued a batch 50000 message(s) in 1927.82ms, avg 0.04ms per message
 Enqueued a batch 50000 message(s) in 1916.92ms, avg 0.04ms per message
 ```
-#### Batch messages consumer ####
+#### Batch messages consumer - batchSize 10_000 ####
 ```
 Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.04ms per message
 Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.04ms per message
 Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.04ms per message
 Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.04ms per message
 Tried to fetch a batch 10000 messages, got 10000/10000, avg 0.04ms per message
+```
+
+#### Batch message consumer - batchSize 50_000 ####
+```
+Tried to fetch a batch 50000 messages, got 50000/50000, avg 0.05ms per message
+Tried to fetch a batch 50000 messages, got 50000/50000, avg 0.04ms per message
+Tried to fetch a batch 50000 messages, got 50000/50000, avg 0.04ms per message
+Tried to fetch a batch 50000 messages, got 50000/50000, avg 0.04ms per message
+Tried to fetch a batch 50000 messages, got 50000/50000, avg 0.04ms per message
 ```
 ## Demo
 ### Simple Publisher
