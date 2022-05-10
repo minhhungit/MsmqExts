@@ -7,7 +7,7 @@ Install-Package MsmqExts
 ```
 
 ### Performance
->Note: this test is on latest release candidate versions
+>Note: this test is on latest release candidate versions https://www.nuget.org/packages/MsmqExts/
 
 #### Single message producer ####
 ```
