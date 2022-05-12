@@ -54,6 +54,10 @@
       <Project>{E611A844-B575-4606-85AB-1DE47FDD6591}</Project>
       <Name>MsmqExts</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\SimpleShare\SimpleShare.csproj">
+      <Project>{4EC97FE9-8D49-49D3-B8C6-0414B7B14E72}</Project>
+      <Name>SimpleShare</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SimpleMessage\SimpleMessage.csproj">
       <Project>{9507037b-0df7-4234-8ad3-07c9349d76d9}</Project>
       <Name>SimpleMessage</Name>

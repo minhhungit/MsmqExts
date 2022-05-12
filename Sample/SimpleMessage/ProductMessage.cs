@@ -1,18 +1,15 @@
-﻿using System;
+﻿using Newtonsoft.Json;
 
 namespace SimpleMessage
 {
     public class ProductMessage
     {
-        public ProductMessage(Guid id, DateTime createDate, int seq)
+        public ProductMessage(string text)
         {
-            Id = id;
-            CreatedDate = createDate;
-            Seq = seq;
+            Text = text;
         }
 
-        public Guid Id { get; private set; }
-        public DateTime CreatedDate { get; private set; }
-        public int Seq { get; private set; }
+        [JsonProperty("t")]
+        public string Text { get; private set; }
     }
 }

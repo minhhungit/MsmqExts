@@ -1,5 +1,6 @@
 ﻿using MsmqExts;
 using SimpleMessage;
+using SimpleShare;
 using System;
 using System.Diagnostics;
 
@@ -18,19 +19,19 @@ namespace SimplePublisher
 
                 while (true)
                 {
+                    var obj = new ProductMessage(StringGenerator.GenerateString(500));
+
                     Stopwatch sw = Stopwatch.StartNew();
 
                     if (useParallel)
                     {
                         System.Threading.Tasks.Parallel.For(0, parallelBatchSize, i =>
                         {
-                            var obj = new ProductMessage(Guid.NewGuid(), DateTime.Now, i);
                             messageQueue.Enqueue(obj);
                         });
                     }
                     else
                     {
-                        var obj = new ProductMessage(Guid.NewGuid(), DateTime.Now, 0);
                         messageQueue.Enqueue(obj);
                     }
 

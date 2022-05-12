@@ -22,6 +22,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "_Solutio
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleShare", "SimpleShare\SimpleShare.csproj", "{4EC97FE9-8D49-49D3-B8C6-0414B7B14E72}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,10 @@ Global
 		{D049E627-65B5-4E13-B64A-1C2F5C5DCFC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D049E627-65B5-4E13-B64A-1C2F5C5DCFC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D049E627-65B5-4E13-B64A-1C2F5C5DCFC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4EC97FE9-8D49-49D3-B8C6-0414B7B14E72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4EC97FE9-8D49-49D3-B8C6-0414B7B14E72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4EC97FE9-8D49-49D3-B8C6-0414B7B14E72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4EC97FE9-8D49-49D3-B8C6-0414B7B14E72}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -62,6 +68,7 @@ Global
 		{9507037B-0DF7-4234-8AD3-07C9349D76D9} = {F0C92577-339A-43D9-A168-A020D2C64F3C}
 		{DB2ADC41-4A48-419E-8B4C-21CD621B4D3A} = {F0C92577-339A-43D9-A168-A020D2C64F3C}
 		{D049E627-65B5-4E13-B64A-1C2F5C5DCFC9} = {F0C92577-339A-43D9-A168-A020D2C64F3C}
+		{4EC97FE9-8D49-49D3-B8C6-0414B7B14E72} = {F0C92577-339A-43D9-A168-A020D2C64F3C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C54B07CB-E62D-4D66-B115-3C1F60B9B4F4}

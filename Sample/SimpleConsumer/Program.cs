@@ -43,8 +43,8 @@ namespace SimpleConsumer
                         case DequeueResultStatus.Success:
                             if (message.Result is ProductMessage prod)
                             {
-                                var shortId = prod.Id.ToString().Substring(0, 7);
-                                Console.WriteLine($"Got a product in {Math.Round(message.DequeueElapsed.TotalMilliseconds, 2)}ms | [<{prod.Seq} / {shortId}> - {prod.CreatedDate.ToString("HH:mm:ss.fff")}]");
+                                //var shortId = prod.Id.ToString().Substring(0, 7);
+                                Console.WriteLine($"Got a product in {Math.Round(message.DequeueElapsed.TotalMilliseconds, 2)}ms");
 
                                 message?.CommitTransaction();
                                 message?.Dispose();

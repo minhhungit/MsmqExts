@@ -1,5 +1,6 @@
 ﻿using MsmqExts;
 using SimpleMessage;
+using SimpleShare;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -17,12 +18,12 @@ namespace SimplePublisherBatch
 
                 while (true)
                 {
-                    Stopwatch sw = Stopwatch.StartNew();
-
                     var objs = Enumerable.Range(0, batchSize).Select(seq =>
                     {
-                        return new ProductMessage(Guid.NewGuid(), DateTime.Now, seq);
+                        return new ProductMessage(StringGenerator.GenerateString(70));
                     }).ToArray();
+
+                    Stopwatch sw = Stopwatch.StartNew();
 
                     messageQueue.EnqueueBatch(objs);
 
