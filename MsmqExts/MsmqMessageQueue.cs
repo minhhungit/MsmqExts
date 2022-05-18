@@ -8,7 +8,6 @@ using Experimental.System.Messaging;
 #endif
 using System.Text;
 using System.Threading;
-using MsmqExts.Extensions;
 using System.Diagnostics;
 using System.Linq;
 
@@ -83,10 +82,8 @@ namespace MsmqExts
             
             try
             {
-                var message = transaction.Receive(Queue, Settings.ReceiveTimeout);
-                var messageBody = message.BodyStream.ReadFromJson(message.Label, Settings.JsonSerializerSettings);
-                                
-                result = new MsmqFetchedMessage(transaction, message.Label, messageBody, DequeueResultStatus.Success, null);
+                var message = transaction.Receive(Queue, Settings.ReceiveTimeout);                
+                result = new MsmqFetchedMessage(transaction, message.Label, message, DequeueResultStatus.Success, null);
             }
             catch (MessageQueueException ex) when (ex.MessageQueueErrorCode == MessageQueueErrorCode.IOTimeout)
             {
@@ -223,7 +220,7 @@ namespace MsmqExts
             Stopwatch stopwatch = Stopwatch.StartNew();
             try
             {
-                using (MemoryStream messageMemory = new MemoryStream(Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(obj))))
+                using (MemoryStream messageMemory = new MemoryStream(Settings.Encoding.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(obj))))
                 {
                     using (var message = new Message
                     {
@@ -291,7 +288,7 @@ namespace MsmqExts
                         transaction.Begin();
                     }
                     
-                    using (MemoryStream messageMemory = new MemoryStream(Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(obj))))
+                    using (MemoryStream messageMemory = new MemoryStream(Settings.Encoding.GetBytes(Settings.SerializerHelper.SerializeObject(obj))))
                     {
                         using (var message = new Message
                         {
@@ -337,6 +334,11 @@ namespace MsmqExts
             }
 
             throw new InvalidOperationException("Unknown MSMQ transaction type: " + Settings.TransactionType);
+        }
+
+        public object GetMessageResult(IFetchedMessage fetchedMessage)
+        {
+            return Settings.SerializerHelper.DeserializeObject(fetchedMessage.MsmqMessage.BodyStream, fetchedMessage.MsmqMessage.Label, Settings.Encoding);
         }
     }
 }

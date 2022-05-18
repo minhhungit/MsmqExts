@@ -1,16 +1,22 @@
 ﻿using System;
 
+#if NET462
+using System.Messaging;
+#else
+using Experimental.System.Messaging;
+#endif
+
 namespace MsmqExts
 {
     public class MsmqFetchedMessage : IFetchedMessage
     {
         public IMsmqTransaction Transaction { get; private set; }
 
-        public MsmqFetchedMessage(IMsmqTransaction transaction, string label, object result, DequeueResultStatus dequeueResultStatus, Exception dequeueEx)
+        public MsmqFetchedMessage(IMsmqTransaction transaction, string label, Message msmqMessage, DequeueResultStatus dequeueResultStatus, Exception dequeueEx)
         {
             Transaction = transaction;
             Label = label;
-            Result = result;
+            MsmqMessage = msmqMessage;
             DequeueResultStatus = dequeueResultStatus;
 
             if (dequeueResultStatus == DequeueResultStatus.Success)
@@ -24,7 +30,7 @@ namespace MsmqExts
                     throw DequeueException;
                 }
 
-                if (result == null)
+                if (MsmqMessage == null)
                 {
                     // no need to abort transaction here because exception will be caught and transation will be aborted later
                     DequeueException = new MessageResultIsNullException();
@@ -45,7 +51,7 @@ namespace MsmqExts
         /// <summary>
         /// Message object
         /// </summary>
-        public object Result { get; private set; }
+        public Message MsmqMessage { get; private set; }
 
         public DequeueResultStatus DequeueResultStatus { get; private set; }
 

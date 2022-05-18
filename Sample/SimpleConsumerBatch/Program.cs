@@ -66,7 +66,7 @@ namespace SimpleConsumerBatch
 
                     if (batchDequeueResult.NumberOfDequeuedMessages > 0)
                     {
-                        Console.WriteLine($"Tried to fetch a batch {batchSize} messages, got {batchDequeueResult.NumberOfDequeuedMessages}/{batchSize}, avg {Math.Round(batchDequeueResult.DequeueElapsed.TotalMilliseconds / batchDequeueResult.NumberOfDequeuedMessages, 2)}ms per message");
+                        Console.WriteLine($"Tried to fetch a batch {batchSize} messages (un-committed), got {batchDequeueResult.NumberOfDequeuedMessages}/{batchSize}, avg {Math.Round(batchDequeueResult.DequeueElapsed.TotalMilliseconds / batchDequeueResult.NumberOfDequeuedMessages, 2)}ms per message");
                     }
                     else
                     {
@@ -79,20 +79,19 @@ namespace SimpleConsumerBatch
                     var tempProducts = new List<ProductMessage>();
 
                     // parsing
-                    foreach (var msg in batchDequeueResult.Messages)
+                    foreach (var fetchedMsg in batchDequeueResult.Messages)
                     {
-                        if (hasNoHandlerMessage == false)
+                        var msgResult = _messageQueue.GetMessageResult(fetchedMsg);
+
+                        if (msgResult is ProductMessage prod)
                         {
-                            if (msg.Result is ProductMessage prod)
-                            {
-                                tempProducts.Add(prod);
-                            }
-                            else
-                            {
-                                noHandlerMessage = msg;
-                                hasNoHandlerMessage = true;
-                                break;
-                            }
+                            tempProducts.Add(prod);
+                        }
+                        else
+                        {
+                            noHandlerMessage = fetchedMsg;
+                            hasNoHandlerMessage = true;
+                            break;
                         }
                     }
 

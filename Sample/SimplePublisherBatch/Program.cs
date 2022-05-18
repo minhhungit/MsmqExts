@@ -11,21 +11,23 @@ namespace SimplePublisherBatch
     {
         static void Main(string[] args)
         {
-            var batchSize = 50000;
+            var batchSize = 10000;
+            int textByteSize = 500;
+
             try
             {
                 MsmqMessageQueue messageQueue = new MsmqMessageQueue(".\\private$\\hungvo-hello");
 
                 while (true)
                 {
-                    var objs = Enumerable.Range(0, batchSize).Select(seq =>
+                    var productMessageBatch = Enumerable.Range(0, batchSize).Select(seq =>
                     {
-                        return new ProductMessage(StringGenerator.GenerateString(70));
+                        return new ProductMessage(Helper.GenerateString(textByteSize, messageQueue.Settings.Encoding));
                     }).ToArray();
 
                     Stopwatch sw = Stopwatch.StartNew();
 
-                    messageQueue.EnqueueBatch(objs);
+                    messageQueue.EnqueueBatch(productMessageBatch);
 
                     sw.Stop();
 

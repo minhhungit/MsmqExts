@@ -28,24 +28,26 @@ namespace SimpleConsumerNetCore
 
             while (true)
             {
-                IFetchedMessage message = null;
+                IFetchedMessage? fetchMessage = null;
                 string messageLabel = string.Empty;
 
                 try
                 {
-                    message = msmqMessageQueue.Dequeue(_token);
-                    messageLabel = message.Label;
+                    fetchMessage = msmqMessageQueue.Dequeue(_token);
+                    messageLabel = fetchMessage.Label;
 
-                    switch (message.DequeueResultStatus)
+                    switch (fetchMessage.DequeueResultStatus)
                     {
                         case DequeueResultStatus.Success:
-                            if (message.Result is ProductMessage prod)
+                            var messageResult = msmqMessageQueue.GetMessageResult(fetchMessage);
+
+                            if (messageResult is ProductMessage prod)
                             {
                                 //var shortId = prod.Id.ToString().Substring(0, 7);
-                                Console.WriteLine($"Got a product in {Math.Round(message.DequeueElapsed.TotalMilliseconds, 2)}ms");
+                                Console.WriteLine($"Got a product in {Math.Round(fetchMessage.DequeueElapsed.TotalMilliseconds, 2)}ms");
 
-                                message?.CommitTransaction();
-                                message?.Dispose();
+                                fetchMessage?.CommitTransaction();
+                                fetchMessage?.Dispose();
                             }
                             else
                             {
@@ -57,7 +59,7 @@ namespace SimpleConsumerNetCore
                             Thread.Sleep(outOfMessageDelayTime);
                             break;
                         case DequeueResultStatus.Exception:
-                            throw new Exception("Dequeue message got error: " + message.DequeueException?.Message);
+                            throw new Exception("Dequeue message got error: " + fetchMessage.DequeueException?.Message);
                         default:
                             break;
                     }
@@ -67,15 +69,15 @@ namespace SimpleConsumerNetCore
                 {
                     if (ignoreMessageIfHasNoHandler)
                     {
-                        message?.CommitTransaction();
+                        fetchMessage?.CommitTransaction();
                         Console.WriteLine($"Message has no handler, but was ignored [ignoreMessageIfHasNoHandler={ignoreMessageIfHasNoHandler}], message label is {messageLabel}, this is an informational message only, no user action is required.");
-                        message?.Dispose();
+                        fetchMessage?.Dispose();
                     }
                     else
                     {
-                        message?.AbortTransaction();
+                        fetchMessage?.AbortTransaction();
                         Console.WriteLine($"Message has no handler, message label is {messageLabel}");
-                        message?.Dispose();
+                        fetchMessage?.Dispose();
 
                         break;
                     }
@@ -89,15 +91,15 @@ namespace SimpleConsumerNetCore
                 {
                     if (byPassIfError)
                     {
-                        message?.CommitTransaction();
+                        fetchMessage?.CommitTransaction();
                         Console.WriteLine($"Got an error message, but was ignored [byPassIfError = {byPassIfError}], this is an informational message only, no user action is required.");
-                        message?.Dispose();
+                        fetchMessage?.Dispose();
                     }
                     else
                     {
-                        message?.AbortTransaction();
+                        fetchMessage?.AbortTransaction();
                         Console.WriteLine($"Got an error {ex.Message}");
-                        message?.Dispose();
+                        fetchMessage?.Dispose();
 
                         break;
                     }

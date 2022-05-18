@@ -2,6 +2,7 @@
 
 namespace SimpleMessage
 {
+    //[System.Serializable]
     public class ProductMessage
     {
         public ProductMessage(string text)

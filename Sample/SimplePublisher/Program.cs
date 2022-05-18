@@ -12,6 +12,7 @@ namespace SimplePublisher
         {
             var useParallel = true;
             var parallelBatchSize = 10000;
+            var textByteSize = 500;
 
             try
             {
@@ -19,7 +20,7 @@ namespace SimplePublisher
 
                 while (true)
                 {
-                    var obj = new ProductMessage(StringGenerator.GenerateString(500));
+                    var obj = new ProductMessage(Helper.GenerateString(textByteSize, messageQueue.Settings.Encoding));
 
                     Stopwatch sw = Stopwatch.StartNew();
 

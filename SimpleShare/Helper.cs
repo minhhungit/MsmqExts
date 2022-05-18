@@ -2,16 +2,16 @@
 
 namespace SimpleShare
 {
-    public class StringGenerator
+    public class Helper
     {
         static Random rnd = new Random();
 
-        public static string GenerateString(int nbrOfBytes)
+        public static string GenerateString(int nbrOfBytes, System.Text.Encoding encoding)
         {
             var byteArray = GetByteArray(nbrOfBytes);
-            var result = System.Text.Encoding.Default.GetString(byteArray);
+            var result = encoding.GetString(byteArray);
 
-            //var xx = System.Text.Encoding.Default.GetBytes(result);
+            // var xx = encoding.GetBytes(result);
 
             return result;
         }
