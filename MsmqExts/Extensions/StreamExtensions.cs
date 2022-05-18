@@ -6,11 +6,11 @@ namespace MsmqExts.Extensions
 {
     public static class StreamExtensions
     {
-        public static string ReadToEnd(this Stream stream)
-        {
-            var reader = new StreamReader(stream);
-            return reader.ReadToEnd();
-        }
+        //public static string ReadToEnd(this Stream stream)
+        //{
+        //    var reader = new StreamReader(stream);
+        //    return reader.ReadToEnd();
+        //}
 
         //public static T ReadFromJson<T>(this Stream stream, JsonSerializerSettings jsonSerializerSettings)
         //{
@@ -30,11 +30,17 @@ namespace MsmqExts.Extensions
 
             if (jsonSerializerSettings == null)
             {
-                return JsonConvert.DeserializeObject(stream.ReadToEnd(), Type.GetType(messageType));
+                using (var reader = new StreamReader(stream))
+                {
+                    return JsonConvert.DeserializeObject(reader.ReadToEnd(), Type.GetType(messageType));
+                }
             }
             else
             {
-                return JsonConvert.DeserializeObject(stream.ReadToEnd(), Type.GetType(messageType), jsonSerializerSettings);
+                using (var reader = new StreamReader(stream))
+                {
+                    return JsonConvert.DeserializeObject(reader.ReadToEnd(), Type.GetType(messageType), jsonSerializerSettings);
+                }
             }
         }
     }

@@ -10,6 +10,6 @@ namespace SimpleMessage
         }
 
         [JsonProperty("t")]
-        public string Text { get; private set; }
+        public string Text { get; private set; } // immutability 
     }
 }

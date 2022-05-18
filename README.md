@@ -101,8 +101,11 @@ catch (Exception ex)
 > [Check more samples here](https://github.com/minhhungit/MsmqExts/tree/main/Sample)
 
 ### Feature:
+- Support for immutable messages
+- Use very low CPU/RAM
 - Transaction
 - Batch enqueue/dequeue messages
+- Support netstandard2.0 & net462
 - Message persistence in mind
 
 ### How to run sample: 
