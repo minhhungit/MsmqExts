@@ -6,7 +6,7 @@ MSMQ (Microsoft Message Queuing) helper library
 Install-Package MsmqExts
 ```
 
-### Performance
+### Performance (Transaction queue)
 
 #### Single message producer ####
 ```
